@@ -201,3 +201,39 @@ lofiToggle.addEventListener('click', () => {
     lofiIcon.classList.replace('fa-volume-up', 'fa-volume-mute');
   }
 });
+
+// ─── INTERACTIVE TERMINAL ───
+const termInput = document.getElementById('terminal-input');
+const termHistory = document.getElementById('terminal-history');
+
+const commands = {
+  help: "Comandos: about, skills, contact, clear, social",
+  about: "Pedro Floriano, 18 anos. Técnico em Eletrônica e Cibersegurança.",
+  skills: "Eletrônica, Cibersegurança, Redes, Linux, Arduino, Inglês, Espanhol.",
+  contact: "Email: florianop2008@gmail.com | LinkedIn: /in/pedro-augusto-floriano",
+  social: "Ações: Arrecadação ETEC, Apoio RS, Doador de Sangue.",
+  clear: "CLEAR"
+};
+
+termInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = termInput.value.toLowerCase().trim();
+    const line = document.createElement('div');
+    line.className = 't-line';
+    
+    if (val === 'clear') {
+      termHistory.innerHTML = '';
+    } else if (commands[val]) {
+      line.innerHTML = `<span class="t-cmd">></span> <span class="t-val">${commands[val]}</span>`;
+      termHistory.appendChild(line);
+    } else if (val !== "") {
+      line.innerHTML = `<span class="t-red" style="color:var(--red)">!</span> Comando não encontrado: ${val}`;
+      termHistory.appendChild(line);
+    }
+    
+    termInput.value = '';
+    // Auto-scroll para o final
+    const body = termInput.closest('.terminal-body');
+    body.scrollTop = body.scrollHeight;
+  }
+});

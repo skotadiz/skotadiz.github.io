@@ -240,22 +240,20 @@
             <br>
             <div class="t-line"><span class="t-cmd">$</span> <span class="t-key">cat</span> perfil.json</div>
             <div class="t-line"><span class="t-comment">{</span></div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"idade"</span>: <span class="t-val">"18 anos"</span>,</div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"cidade"</span>: <span class="t-val">"Sorocaba, SP"</span>,</div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"formação"</span>: [</div>
-            <div class="t-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-val">"Técnico Eletrônica"</span>,</div>
-            <div class="t-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-val">"Técnico Cibersegurança"</span></div>
-            <div class="t-line">&nbsp;&nbsp;],</div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"idiomas"</span>: <span class="t-val">["PT","EN","ES"]</span>,</div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"conquista"</span>: <span class="t-val">"OBLI Prata"</span>,</div>
-            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"status"</span>: <span style="color:var(--teal)">"disponivel"</span></div>
+            <div id="terminal-history">
+              <div class="t-line">&nbsp;&nbsp;<span class="t-key">"status"</span>: <span style="color:var(--teal)">"online"</span>,</div>
+              <div class="t-line">&nbsp;&nbsp;<span class="t-key">"msg"</span>: <span class="t-val">"Digite 'help' para comandos"</span></div>
+            </div>
             <div class="t-line"><span class="t-comment">}</span></div>
             <br>
             <div class="terminal-gif-wrapper">
               <img src="chill.gif" class="terminal-gif" alt="">
               <div class="terminal-scanlines"></div>
             </div>
-            <div class="t-line"><span class="t-cmd">$</span> <span class="t-cursor"></span></div>
+            <div class="t-line">
+              <span class="t-cmd">$</span> <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" autofocus>
+              <span class="t-cursor"></span>
+            </div>
           </div>
         </div>
       </div>

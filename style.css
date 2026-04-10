@@ -398,6 +398,16 @@ h2.sec-title span{color:var(--gold)}
 .t-comment{color:var(--muted)}
 .t-cursor{display:inline-block;width:8px;height:14px;background:var(--teal);animation:blink .8s step-end infinite;vertical-align:middle}
 
+#terminal-input {
+  background: transparent;
+  border: none;
+  color: var(--teal);
+  font-family: var(--ff-mono);
+  font-size: inherit;
+  outline: none;
+  width: calc(100% - 20px);
+}
+
 .sobre-p{font-size:1rem;color:rgba(240,235,224,.7);line-height:1.85;margin-bottom:1.2rem;font-weight:300}
 .sobre-p strong{color:var(--gold);font-weight:600}
 
