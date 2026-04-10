@@ -1,0 +1,32 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Este workflow será executado toda vez que houver um push para a branch 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # O ambiente onde o job será executado
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3 # Baixa o código do seu repositório
+
+      - name: Configurar Node.js (opcional, mas boa prática para muitos projetos web)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Use a versão do Node.js que você preferir
+
+      # Se você tivesse um processo de build (ex: npm run build), ele viria aqui:
+      # - name: Instalar dependências
+      #   run: npm install
+      # - name: Buildar o projeto
+      #   run: npm run build
+
+      - name: Deploy para GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3 # Uma action popular para deploy no GitHub Pages
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Token de autenticação fornecido pelo GitHub
+          publish_dir: . # O diretório que será publicado. '.' significa a raiz do seu repositório.
+          publish_branch: main # A branch para a qual o conteúdo será publicado. Para username.github.io, é a 'main'.
+          # Se você tivesse um diretório de build (ex: 'dist'), usaria: publish_dir: ./dist

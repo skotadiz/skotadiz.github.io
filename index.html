@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedro Augusto Floriano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOFI AUDIO -->
+<audio id="background-lofi" src="lofi.mp3" loop volume="0.02"></audio>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- OVERLAYS -->
+<canvas id="particles"></canvas>
+<div class="noise"></div>
+<div class="scanlines"></div>
+
+<!-- SVG DISTORTION FILTER -->
+<svg width="0" height="0" style="position:absolute; pointer-events:none;">
+  <filter id="distort">
+    <feTurbulence type="fractalNoise" baseFrequency="0.01 0.05" numOctaves="2" result="turbulence">
+      <animate attributeName="baseFrequency" from="0.01 0.05" to="0.02 0.07" dur="15s" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="8" />
+  </filter>
+</svg>
+
+<svg width="0" height="0" style="position:absolute; pointer-events:none;">
+  <filter id="lens-distortion">
+    <feTurbulence type="fractalNoise" baseFrequency="0.001" numOctaves="1" result="warp">
+      <animate attributeName="baseFrequency" from="0.001" to="0.002" dur="30s" repeatCount="indefinite" />
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="warp" scale="12" />
+  </filter>
+</svg>
+
+<!-- LOADING -->
+<div id="loader">
+  <div class="loader-logo">BEBOP</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="lbar"></div></div>
+  <div class="loader-text" id="ltext">Inicializando sistemas...</div>
+</div>
+
+<!-- EASTER EGG MODAL -->
+<div id="egg-modal">
+  <div class="egg-inner">
+    <div class="egg-title">SEE YOU SPACE COWBOY...</div>
+    <div class="egg-text">
+      Você encontrou o easter egg!<br><br>
+      "Whatever happens, happens."<br>
+      — Spike Spiegel<br><br>
+      Pedro Augusto Floriano<br>
+      Técnico · Cibersegurança · Eletrônica<br>
+      18 anos · Sorocaba, SP<br><br>
+      <span style="color:var(--gold)">↑↑↓↓←→←→BA — Konami Code</span>
+    </div>
+    <button class="egg-close" onclick="closeEgg()">Fechar terminal</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><div class="dot"></div>PAF</div>
+  <ul>
+    <li><a href="#sobre" cursor="none">Sobre</a></li>
+    <li><a href="#habilidades">Skills</a></li>
+    <li><a href="#experiencia">Timeline</a></li>
+    <li><a href="#projetos">Projetos</a></li>
+    <li><a href="#contato">Contato</a></li>
+  </ul>
+  <div class="nav-ep"><div class="live-dot"></div>Disponível para oportunidades</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+
+  <img src="bang.gif" class="hero-bg-gif" alt="">
+
+  <div class="hero-left">
+    <div class="hero-ep">// Sorocaba, SP &mdash; 18 anos &mdash; primeiro emprego</div>
+    <h1 class="glitch-name" data-text="PEDRO">PEDRO</h1>
+    <h1 class="glitch-name" data-text="AUGUSTO" style="color:var(--gold);animation-delay:.6s">AUGUSTO</h1>
+    <h1 class="glitch-name" data-text="FLORIANO" style="animation-delay:.8s">FLORIANO</h1>
+
+    <div class="hero-subtitle">
+      <span class="typewriter">Técnico em Eletrônica &amp; Cibersegurança</span>
+    </div>
+
+    <div class="hero-tags">
+      <span class="hero-tag gold">Eletrônica</span>
+      <span class="hero-tag cyan">Cibersegurança</span>
+      <span class="hero-tag red">OBLI Prata</span>
+      <span class="hero-tag teal">PT / EN / ES</span>
+    </div>
+
+    <div class="hero-ctas">
+      <a href="#contato" class="btn-primary">↗ Entrar em contato</a>
+      <a href="#projetos" class="btn-ghost">Ver projetos →</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<!-- SOBRE -->
+<section id="sobre">
+  <div class="inner">
+    <div class="sec-label">01 &mdash; Sobre mim</div>
+    <h2 class="sec-title">Quem sou <span>eu</span></h2>
+    <div class="sobre-grid">
+      <div class="reveal-l">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+            <span class="t-title">// pedro_floriano.sh</span>
+          </div>
+          <div class="terminal-body">
+            <div class="t-line"><span class="t-cmd">$</span> <span class="t-key">whoami</span></div>
+            <div class="t-line t-val">Pedro Augusto Floriano</div>
+            <br>
+            <div class="t-line"><span class="t-cmd">$</span> <span class="t-key">cat</span> perfil.json</div>
+            <div class="t-line"><span class="t-comment">{</span></div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"idade"</span>: <span class="t-val">"18 anos"</span>,</div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"cidade"</span>: <span class="t-val">"Sorocaba, SP"</span>,</div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"formação"</span>: [</div>
+            <div class="t-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-val">"Técnico Eletrônica"</span>,</div>
+            <div class="t-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-val">"Técnico Cibersegurança"</span></div>
+            <div class="t-line">&nbsp;&nbsp;],</div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"idiomas"</span>: <span class="t-val">["PT","EN","ES"]</span>,</div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"conquista"</span>: <span class="t-val">"OBLI Prata"</span>,</div>
+            <div class="t-line">&nbsp;&nbsp;<span class="t-key">"status"</span>: <span style="color:var(--teal)">"disponivel"</span></div>
+            <div class="t-line"><span class="t-comment">}</span></div>
+            <br>
+            <div class="terminal-gif-wrapper">
+              <img src="chill.gif" class="terminal-gif" alt="">
+              <div class="terminal-scanlines"></div>
+            </div>
+            <div class="t-line"><span class="t-cmd">$</span> <span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal-r">
+        <p class="sobre-p">Tenho <strong>18 anos</strong> e sou apaixonado por tecnologia desde sempre. Com dupla formação técnica em <strong>Eletrônica</strong> e <strong>Cibersegurança</strong>, tenho uma visão diferenciada que une hardware e proteção de sistemas — combinação rara no mercado.</p>
+        <p class="sobre-p">Sou medalhista de prata na <strong>OBLI</strong>, o que demonstra meu raciocínio lógico analítico — habilidade diretamente aplicável em segurança e sistemas. Falo <strong>Português, Inglês e Espanhol</strong>, lendo documentações técnicas em qualquer um deles sem dificuldade.</p>
+        <p class="sobre-p">Busco minha <strong>primeira oportunidade profissional</strong></p>
+        <div class="medal">
+          <div class="medal-circle">🥈</div>
+          <div class="medal-text">
+            <div class="title">Medalha de Prata — OBLI</div>
+            <div class="sub">Olimpíada Brasileira de Língua Inglesa</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-n">2</div><div class="stat-l">Formações técnicas</div></div>
+          <div class="stat c"><div class="stat-n">3</div><div class="stat-l">Idiomas avançados</div></div>
+          <div class="stat t"><div class="stat-n">∞</div><div class="stat-l">Vontade de crescer</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="habilidades">
+  <div class="inner">
+    <div class="sec-label">02 &mdash; Habilidades</div>
+    <h2 class="sec-title">Skills <span>&amp;</span> Tools</h2>
+    <div class="skills-layout">
+
+      <div class="skill-panel reveal">
+        <div class="sp-icon">⚡</div>
+        <div class="sp-title">Eletrônica</div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Circuitos Digitais</span><span class="sk-pct">85%</span></div><div class="bar-track"><div class="bar-fill" style="--w:85%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Arduino / MCU</span><span class="sk-pct">80%</span></div><div class="bar-track"><div class="bar-fill" style="--w:80%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Eletrônica Analógica</span><span class="sk-pct">75%</span></div><div class="bar-track"><div class="bar-fill" style="--w:75%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">PCB / Esquemas</span><span class="sk-pct">78%</span></div><div class="bar-track"><div class="bar-fill" style="--w:78%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Automação Básica</span><span class="sk-pct">70%</span></div><div class="bar-track"><div class="bar-fill" style="--w:70%"></div></div></div>
+      </div>
+
+      <div class="skill-panel reveal">
+        <div class="sp-icon b">🔒</div>
+        <div class="sp-title">Cibersegurança</div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Segurança de Redes</span><span class="sk-pct">80%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:80%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Linux / Kali Linux</span><span class="sk-pct">75%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:75%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">OSINT &amp; Recon</span><span class="sk-pct">70%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:70%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Criptografia</span><span class="sk-pct">68%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:68%"></div></div></div>
+        <div class="skill-row"><div class="skill-meta"><span class="sk-name">Análise de Vulnerab.</span><span class="sk-pct">72%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:72%"></div></div></div>
+      </div>
+
+      <div class="skill-panel reveal">
+        <div class="sp-icon t">🌍</div>
+        <div class="sp-title">Idiomas</div>
+        <div class="lang-pills">
+          <div class="lang-pill"><span class="lname">🇧🇷 Português</span><span class="llevel">Nativo</span></div>
+          <div class="lang-pill"><span class="lname">🇺🇸 Inglês</span><span class="llevel">Intermediário</span></div>
+          <div class="lang-pill"><span class="lname">🇪🇸 Espanhol</span><span class="llevel">Intermediário</span></div>
+        </div>
+        <div style="margin-top:1.5rem">
+          <div class="skill-row"><div class="skill-meta"><span class="sk-name">Inglês Técnico</span><span class="sk-pct">90%</span></div><div class="bar-track"><div class="bar-fill t" style="--w:90%"></div></div></div>
+          <div class="skill-row"><div class="skill-meta"><span class="sk-name">Espanhol Conversacional</span><span class="sk-pct">82%</span></div><div class="bar-track"><div class="bar-fill t" style="--w:82%"></div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- BEBOP DIVIDER -->
+<div class="bebop-divider">
+  <img src="nave.gif" class="divider-gif" alt="">
+  <div class="bebop-scene">
+    <div class="bebop-quote">"Whatever happens, happens."</div>
+    <div class="bebop-quote-sub">— Spike Spiegel · Cowboy Bebop · Session #01</div>
+    <div class="bebop-stars">
+      <div class="b-star"></div><div class="b-star"></div><div class="b-star"></div>
+      <div class="b-star"></div><div class="b-star"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<section id="experiencia">
+  <div class="inner">
+    <div class="sec-label">03 &mdash; Formação &amp; Conquistas</div>
+    <h2 class="sec-title"><span>Timeline</span></h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2025 — 2026</div>
+        <div class="tl-h">Técnico em Cibersegurança</div>
+        <div class="tl-sub">Certificação Técnica · Sorocaba, SP</div>
+        <p class="tl-p">Segurança da informação, redes, sistemas operacionais, análise de vulnerabilidades, criptografia, resposta a incidentes e ethical hacking. Visão completa do campo ofensivo e defensivo.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot t"></div>
+        <div class="tl-year" style="color:var(--teal)">2023 — 2025</div>
+        <div class="tl-h">Técnico em Eletrônica</div>
+        <div class="tl-sub">Curso Técnico · Sorocaba, SP</div>
+        <p class="tl-p">Eletrônica analógica e digital, microcontroladores, automação industrial básica, leitura de datasheets e desenvolvimento de projetos eletrônicos práticos do zero.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot b"></div>
+        <div class="tl-year" style="color:var(--cyan)">2025</div>
+        <div class="tl-h">🥈 Medalha de Prata — OBLI</div>
+        <div class="tl-sub">Olimpíada Brasileira de Língua Inglesa</div>
+        <p class="tl-p">Premiado em competição nacional de língua inglesa. Demonstra raciocínio analítico-lógico e capacidade de decifrar padrões — habilidade diretamente aplicável em segurança e programação.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot r"></div>
+        <div class="tl-year" style="color:var(--red)">Contínuo</div>
+        <div class="tl-h">Certificados &amp; Cursos Complementares</div>
+        <div class="tl-sub">Plataformas online · Em andamento</div>
+        <p class="tl-p">Comprometimento com aprendizado contínuo: redes, Linux, programação, segurança. Sempre atualizando o arsenal de conhecimento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJETOS -->
+<section id="projetos">
+  <div class="inner">
+    <div class="sec-label">04 &mdash; Projetos</div>
+    <h2 class="sec-title">Trabalhos <span>&amp; Projetos</span></h2>
+    <div class="proj-grid">
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+        <div class="proj-num">01</div>
+        <span class="proj-cat seg">Cibersegurança</span>
+        <div class="proj-h">Análise de Redes Locais</div>
+        <p class="proj-p">Mapeamento e análise de tráfego em redes locais, identificação de dispositivos, portas abertas e potenciais vulnerabilidades usando ferramentas open source.</p>
+        <div class="proj-stack"><span class="stack-tag">Nmap</span><span class="stack-tag">Wireshark</span><span class="stack-tag">Kali Linux</span><span class="stack-tag">TCP/IP</span></div>
+      </div>
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+        <div class="proj-num">02</div>
+        <span class="proj-cat ele">Eletrônica</span>
+        <div class="proj-h">Automação com Arduino</div>
+        <p class="proj-p">Sistema de automação residencial com Arduino, controlando atuadores e sensores de temperatura e luminosidade via interface serial e lógica programada em C.</p>
+        <div class="proj-stack"><span class="stack-tag">Arduino</span><span class="stack-tag">C/C++</span><span class="stack-tag">Sensores</span><span class="stack-tag">Atuadores</span></div>
+      </div>
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+        <div class="proj-num">03</div>
+        <span class="proj-cat seg">Cibersegurança</span>
+        <div class="proj-h">Hardening de Sistema Linux</div>
+        <p class="proj-p">Aplicação de boas práticas de segurança em Linux: firewall, SSH hardening, permissões de arquivo, monitoramento de logs e configurações de kernel seguras.</p>
+        <div class="proj-stack"><span class="stack-tag">Linux</span><span class="stack-tag">iptables</span><span class="stack-tag">Bash</span><span class="stack-tag">OpenSSH</span></div>
+      </div>
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+        <div class="proj-num">04</div>
+        <span class="proj-cat ling">Linguística</span>
+        <div class="proj-h">Projeto OBLI — Análise Linguística</div>
+        <p class="proj-p">Trabalho premiado com prata na Olimpíada Brasileira de Língua Inglesa, envolvendo análise fonológica, morfológica e sintática de idiomas naturais e artificiais.</p>
+        <div class="proj-stack"><span class="stack-tag">Fonologia</span><span class="stack-tag">Morfologia</span><span class="stack-tag">Lógica</span><span class="stack-tag">Análise</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section id="contato">
+  <div class="inner">
+    <div class="sec-label">05 &mdash; Contato</div>
+    <h2 class="sec-title">Vamos <span>conversar</span></h2>
+    <div class="contato-grid">
+      <div class="reveal-l">
+        <h3>Pronto para a missão</h3>
+        <p>Busco minha primeira oportunidade nas áreas de eletrônica, cibersegurança ou tecnologia. Se você tem uma vaga ou projeto, me manda uma mensagem — respondo rápido.</p>
+        <div class="c-links">
+          <a href="mailto:florianop2008@gmail.com" class="c-link"><div class="c-ico">✉</div>florianop2008@gmail.com</a>
+          <a href="https://linkedin.com/in/pedro-augusto-floriano" target="_blank" class="c-link"><div class="c-ico" style="font-size:.75rem;font-weight:700">in</div>linkedin.com/in/pedro-augusto-floriano</a>
+          <a href="https://github.com/skotadiz" target="_blank" class="c-link"><div class="c-ico" style="font-size:.7rem;font-weight:700">gh</div>github.com/skotadiz</a>
+          <div class="c-link" style="cursor:none"><div class="c-ico">📍</div>Sorocaba, SP — Brasil</div>
+        </div>
+      </div>
+      <div class="reveal-r">
+        <form class="form-panel" action="https://formspree.io/f/xzdkldyl" method="POST">
+          <div class="fg"><label class="fl">// Nome</label><input type="text" class="fi" name="name" placeholder="Seu nome completo" required></div>
+          <div class="fg"><label class="fl">// Email</label><input type="email" class="fi" name="email" placeholder="seu@email.com" required></div>
+          <div class="fg"><label class="fl">// Mensagem</label><textarea class="ft" name="message" placeholder="Conte sobre a oportunidade..." required></textarea></div>
+          <button class="form-btn" type="submit">↗ Enviar mensagem</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-left">© 2025 Pedro Augusto Floriano · Sorocaba, SP · Todos os direitos reservados</div>
+  <div class="ft-right">"You're gonna carry that weight." — Cowboy Bebop</div>
+</footer>
+
+<!-- LOFI CONTROL BUTTON -->
+<button id="lofi-toggle" class="lofi-control">
+  <i class="fas fa-volume-mute"></i>
+</button>
+<div class="konami-hint">↑↑↓↓←→←→BA — tente algo...</div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
