@@ -182,14 +182,22 @@ const lofiToggle = document.getElementById('lofi-toggle');
 const lofiIcon = lofiToggle.querySelector('i');
 lofiAudio.volume = 0.02;
 
-lofiAudio.play().catch(() => {});
+// O áudio é bloqueado pelos navegadores até que o usuário clique em algo.
+// Esta função inicia o áudio no primeiro clique detectado no documento.
+const startAudioOnInteraction = () => {
+  lofiAudio.play().then(() => {
+    lofiIcon.classList.replace('fa-volume-mute', 'fa-volume-up');
+    document.removeEventListener('click', startAudioOnInteraction);
+  }).catch(() => {});
+};
+document.addEventListener('click', startAudioOnInteraction);
 
 lofiToggle.addEventListener('click', () => {
-  if (lofiAudio.volume === 0) {
-    lofiAudio.volume = 0.02;
+  if (lofiAudio.paused) {
+    lofiAudio.play();
     lofiIcon.classList.replace('fa-volume-mute', 'fa-volume-up');
   } else {
-    lofiAudio.volume = 0;
+    lofiAudio.pause();
     lofiIcon.classList.replace('fa-volume-up', 'fa-volume-mute');
   }
 });

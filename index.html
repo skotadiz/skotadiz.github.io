@@ -10,6 +10,14 @@
 <link rel="stylesheet" href="style.css">
 <style>
   /* Ajustes de Responsividade */
+  /* CUSTOM SCROLLBAR - Forçado no HTML para evitar cache do arquivo externo no GitHub Pages */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--ink); }
+  ::-webkit-scrollbar-thumb { background: var(--muted2); border: 1px solid rgba(245, 166, 35, 0.1); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+  /* Suporte para Firefox */
+  * { scrollbar-width: thin; scrollbar-color: var(--muted2) var(--ink); }
+
   .cert-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
