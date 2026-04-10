@@ -216,11 +216,10 @@ const appendLine = (text, color = 'var(--cream)') => {
 };
 
 const commands = {
-  help: "Comandos: about, skills, contact, clear, social, hack",
-  about: "Pedro Floriano, 18 anos. Técnico em Eletrônica e Cibersegurança.",
-  skills: "Eletrônica, Cibersegurança, Redes, Linux, Arduino, Inglês, Espanhol.",
+  help: "Comandos: about, skills, contact, utomação. | CYBER: Pentesting, SOC, Threat Intelligence, Networking, Linux. | LANG: PT, EN, ES.",
   contact: "Email: florianop2008@gmail.com | LinkedIn: /in/pedro-augusto-floriano",
   social: "Ações: Arrecadação ETEC, Apoio RS, Doador de Sangue.",
+  badges: "Certificações Credly: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.",
   hack: "Iniciando sequência de bypass...",
   clear: "CLEAR"
 };
