@@ -1,8 +1,16 @@
 // ─── CURSOR ───
 const cur = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
+const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+if (isTouch) {
+  cur.style.display = 'none';
+  ring.style.display = 'none';
+}
+
 let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{
+  if(isTouch) return;
   mx=e.clientX; my=e.clientY;
   cur.style.left=mx+'px'; cur.style.top=my+'px';
 });
@@ -11,6 +19,7 @@ document.addEventListener('mousemove',e=>{
  * Anima o anel do cursor usando uma interpolação suave (easing) baseada na posição atual do mouse.
  */
 function animRing(){
+  if(isTouch) return;
   rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
   ring.style.left=rx+'px'; ring.style.top=ry+'px';
   requestAnimationFrame(animRing);
@@ -69,7 +78,8 @@ class Particle{
     ctx.fill();
   }
 }
-for(let i=0;i<120;i++) particles.push(new Particle());
+const particleCount = isTouch ? 40 : 120;
+for(let i=0;i<particleCount;i++) particles.push(new Particle());
 
 /**
  * Loop principal de animação do canvas: limpa o quadro e redesenha todas as partículas.
