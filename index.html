@@ -10,6 +10,34 @@
 <link rel="stylesheet" href="style.css">
 <style>
   /* Ajustes de Responsividade */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  .cert-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cert-card:hover {
+    background: rgba(245, 166, 35, 0.05);
+    border-color: var(--gold);
+    transform: translateY(-5px);
+  }
+  .cert-img-wrap img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
   @media (max-width: 850px) {
     nav {
       padding: 0 5% !important;
@@ -51,7 +79,7 @@
     .hero-bg-gif {
       opacity: 0.1 !important;
     }
-    .sobre-grid, .skills-layout, .proj-grid, .contato-grid {
+    .sobre-grid, .skills-layout, .proj-grid, .contato-grid, .cert-grid {
       display: flex !important;
       flex-direction: column !important;
       gap: 2rem !important;
@@ -146,6 +174,7 @@
   <ul>
     <li><a href="#sobre" cursor="none">Sobre</a></li>
     <li><a href="#habilidades">Skills</a></li>
+    <li><a href="#certificacoes">Certificações</a></li>
     <li><a href="#experiencia">Timeline</a></li>
     <li><a href="#projetos">Projetos</a></li>
     <li><a href="#contato">Contato</a></li>
@@ -287,6 +316,25 @@
   </div>
 </section>
 
+<!-- CERTIFICAÇÕES -->
+<section id="certificacoes">
+  <div class="inner">
+    <div class="sec-label">03 &mdash; Certificações</div>
+    <h2 class="sec-title">Badges <span>&amp;</span> Diplomas</h2>
+    <div class="cert-grid">
+      <!-- Exemplo de Badge do Credly -->
+      <a href="URL_DO_SEU_BADGE_NO_CREDLY" target="_blank" class="cert-card reveal">
+        <div class="cert-img-wrap">
+          <img src="https://images.credly.com/images/be260482-418a-4bcc-9ef0-0960a4390082/google-it-support-professional-certificate.png" alt="Google IT Support">
+        </div>
+        <div class="cert-name">IT Support Professional</div>
+      </a>
+      
+      <!-- Adicione mais badges seguindo o mesmo padrão -->
+    </div>
+  </div>
+</section>
+
 <!-- BEBOP DIVIDER -->
 <div class="bebop-divider">
   <img src="nave.gif" class="divider-gif" alt="">
@@ -303,7 +351,7 @@
 <!-- TIMELINE -->
 <section id="experiencia">
   <div class="inner">
-    <div class="sec-label">03 &mdash; Formação &amp; Conquistas</div>
+    <div class="sec-label">04 &mdash; Formação &amp; Conquistas</div>
     <h2 class="sec-title"><span>Timeline</span></h2>
     <div class="timeline">
       <div class="tl-item">
@@ -341,7 +389,7 @@
 <!-- PROJETOS -->
 <section id="projetos">
   <div class="inner">
-    <div class="sec-label">04 &mdash; Projetos</div>
+    <div class="sec-label">05 &mdash; Projetos</div>
     <h2 class="sec-title">Trabalhos <span>&amp; Projetos</span></h2>
     <div class="proj-grid">
       <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
@@ -379,7 +427,7 @@
 <!-- CONTATO -->
 <section id="contato">
   <div class="inner">
-    <div class="sec-label">05 &mdash; Contato</div>
+    <div class="sec-label">06 &mdash; Contato</div>
     <h2 class="sec-title">Vamos <span>conversar</span></h2>
     <div class="contato-grid">
       <div class="reveal-l">
