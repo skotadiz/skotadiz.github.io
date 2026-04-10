@@ -206,12 +206,22 @@ lofiToggle.addEventListener('click', () => {
 const termInput = document.getElementById('terminal-input');
 const termHistory = document.getElementById('terminal-history');
 
+const appendLine = (text, color = 'var(--cream)') => {
+  const line = document.createElement('div');
+  line.className = 't-line';
+  line.innerHTML = `<span class="t-cmd">></span> <span style="color:${color}">${text}</span>`;
+  termHistory.appendChild(line);
+  const body = termInput.closest('.terminal-body');
+  body.scrollTop = body.scrollHeight;
+};
+
 const commands = {
-  help: "Comandos: about, skills, contact, clear, social",
+  help: "Comandos: about, skills, contact, clear, social, hack",
   about: "Pedro Floriano, 18 anos. Técnico em Eletrônica e Cibersegurança.",
   skills: "Eletrônica, Cibersegurança, Redes, Linux, Arduino, Inglês, Espanhol.",
   contact: "Email: florianop2008@gmail.com | LinkedIn: /in/pedro-augusto-floriano",
   social: "Ações: Arrecadação ETEC, Apoio RS, Doador de Sangue.",
+  hack: "Iniciando sequência de bypass...",
   clear: "CLEAR"
 };
 
@@ -223,12 +233,19 @@ termInput?.addEventListener('keydown', (e) => {
     
     if (val === 'clear') {
       termHistory.innerHTML = '';
+    } else if (val === 'hack') {
+      document.body.classList.add('hacking-mode');
+      appendLine("Iniciando injeção SQL...", "var(--red)");
+      setTimeout(() => appendLine("Bypass de firewall concluído.", "var(--red)"), 500);
+      setTimeout(() => appendLine("Acesso ROOT garantido.", "var(--red)"), 1000);
+      setTimeout(() => {
+        document.body.classList.remove('hacking-mode');
+        appendLine("Conexão encerrada pelo host remoto.", "var(--gold)");
+      }, 4000);
     } else if (commands[val]) {
-      line.innerHTML = `<span class="t-cmd">></span> <span class="t-val">${commands[val]}</span>`;
-      termHistory.appendChild(line);
+      appendLine(commands[val]);
     } else if (val !== "") {
-      line.innerHTML = `<span class="t-red" style="color:var(--red)">!</span> Comando não encontrado: ${val}`;
-      termHistory.appendChild(line);
+      appendLine(`Erro: Comando '${val}' não reconhecido.`, "var(--red)");
     }
     
     termInput.value = '';
@@ -237,3 +254,18 @@ termInput?.addEventListener('keydown', (e) => {
     body.scrollTop = body.scrollHeight;
   }
 });
+
+// ─── HUD UPDATER ───
+setInterval(() => {
+  const cpu = Math.floor(Math.random() * (45 - 12) + 12);
+  const temp = Math.floor(Math.random() * (55 - 42) + 42);
+  const net = Math.floor(Math.random() * (40 - 15) + 15);
+  
+  const cpuEl = document.getElementById('hud-cpu');
+  const tempEl = document.getElementById('hud-temp');
+  const netEl = document.getElementById('hud-net');
+  
+  if(cpuEl) cpuEl.innerText = `${cpu}%`;
+  if(tempEl) tempEl.innerText = `${temp}°C`;
+  if(netEl) netEl.innerText = `${net}ms`;
+}, 2000);
