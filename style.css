@@ -753,9 +753,7 @@ footer{
   .sobre-grid,.contato-grid{grid-template-columns:1fr;gap:2.5rem}
   .skills-layout{grid-template-columns:1fr}
   .proj-grid{grid-template-columns:1fr}
-  .spike-container{width:0;opacity:0}
   .hero-bg-gif{display:none}
-  nav ul li:nth-child(n+3){display:none}
 }
 @media(max-width:600px){
   nav{padding:.9rem 1.2rem}

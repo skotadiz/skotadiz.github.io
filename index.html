@@ -18,6 +18,31 @@
   /* Suporte para Firefox */
   * { scrollbar-width: thin; scrollbar-color: var(--muted2) var(--ink); }
 
+  /* Botão do Menu Mobile */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: 1px solid rgba(245, 166, 35, 0.3);
+    color: var(--gold);
+    font-size: 1.2rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    z-index: 1001;
+  }
+
+  /* Melhora a legibilidade e contraste do menu de navegação */
+  nav ul li a {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+  }
+
   .cert-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -48,17 +73,46 @@
   }
   @media (max-width: 850px) {
     nav {
-      padding: 0 5% !important;
+      padding: 15px 5% !important;
+      background: rgba(10, 10, 10, 0.95) !important; /* Fundo sólido para leitura no mobile */
+      border-bottom: 1px solid rgba(245, 166, 35, 0.2);
       height: auto !important;
-      flex-wrap: wrap;
-      justify-content: center !important;
+      justify-content: space-between !important;
+      position: sticky; /* Mantém o menu sempre acessível */
+      top: 0;
+      z-index: 1000;
+    }
+    .menu-toggle {
+      display: block !important;
     }
     .nav-ep, .nav-logo .dot {
       display: none !important;
     }
     nav ul {
-      gap: 1rem !important;
-      margin: 10px 0 !important;
+      display: none !important; /* Esconde por padrão no mobile */
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: rgba(10, 10, 10, 0.98);
+      padding: 20px 0 !important;
+      gap: 5px !important;
+      border-bottom: 1px solid var(--gold);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    nav.active ul {
+      display: flex !important; /* Mostra quando o menu estiver ativo */
+    }
+    nav ul li {
+      width: 100%;
+      text-align: center;
+    }
+    nav ul li a {
+      padding: 15px !important; 
+      width: 100%;
+      font-size: 0.9rem !important;
+      display: inline-block;
     }
     #hero {
       flex-direction: column;
@@ -179,6 +233,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo"><div class="dot"></div>PAF</div>
+  <button id="menu-toggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
   <ul>
     <li><a href="#sobre" cursor="none">Sobre</a></li>
     <li><a href="#habilidades">Skills</a></li>
@@ -258,7 +313,7 @@
               <div class="terminal-scanlines"></div>
             </div>
             <div class="t-line">
-              <span class="t-cmd">$</span> <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" autofocus>
+            <span class="t-cmd">$</span> <input type="text" id="terminal-input" autocomplete="off" spellcheck="false">
               <span class="t-cursor"></span>
             </div>
           </div>

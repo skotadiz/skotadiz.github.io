@@ -1,3 +1,8 @@
+// Garante que a página abra no topo ao carregar ou atualizar
+window.onload = () => {
+  window.scrollTo(0, 0);
+};
+
 // ─── CURSOR ───
 const cur = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
@@ -152,13 +157,34 @@ function trackMouse(e, el) {
 // ─── NAV ACTIVE STATE ───
 const secs = document.querySelectorAll('section[id]');
 const navAs = document.querySelectorAll('nav ul li a');
-window.addEventListener('scroll', () => {
+const navContainer = document.querySelector('nav');
+const menuToggle = document.getElementById('menu-toggle');
+
+// Toggle do Menu Mobile
+menuToggle?.addEventListener('click', () => {
+  navContainer.classList.toggle('active');
+  const icon = menuToggle.querySelector('i');
+  icon.classList.toggle('fa-bars');
+  icon.classList.toggle('fa-times');
+});
+
+// Fecha o menu ao clicar em um link
+navAs.forEach(link => {
+  link.addEventListener('click', () => {
+    navContainer.classList.remove('active');
+    menuToggle.querySelector('i').classList.replace('fa-times', 'fa-bars');
+  });
+});
+
+function updateNav() {
   let curr = "";
   secs.forEach(s => { if(window.scrollY >= s.offsetTop - 150) curr = s.id; });
   navAs.forEach(a => {
     a.style.color = a.getAttribute('href') === `#${curr}` ? 'var(--gold)' : '';
   });
-});
+}
+window.addEventListener('scroll', updateNav);
+window.addEventListener('load', updateNav);
 
 // ─── KONAMI CODE EASTER EGG ───
 const KK=[38,38,40,40,37,39,37,39,66,65];
@@ -180,7 +206,7 @@ function closeEgg(){document.getElementById('egg-modal').classList.remove('show'
 const lofiAudio = document.getElementById('background-lofi');
 const lofiToggle = document.getElementById('lofi-toggle');
 const lofiIcon = lofiToggle.querySelector('i');
-lofiAudio.volume = 0.02;
+lofiAudio.volume = 0.1; // Aumentado para 10% para ser audível
 
 // O áudio é bloqueado pelos navegadores até que o usuário clique em algo.
 // Esta função inicia o áudio no primeiro clique detectado no documento.
@@ -192,7 +218,8 @@ const startAudioOnInteraction = () => {
 };
 document.addEventListener('click', startAudioOnInteraction);
 
-lofiToggle.addEventListener('click', () => {
+lofiToggle.addEventListener('click', (e) => {
+  e.stopPropagation(); // Evita que o clique no botão ative o carregamento automático global ao mesmo tempo
   if (lofiAudio.paused) {
     lofiAudio.play();
     lofiIcon.classList.replace('fa-volume-mute', 'fa-volume-up');
@@ -205,6 +232,11 @@ lofiToggle.addEventListener('click', () => {
 // ─── INTERACTIVE TERMINAL ───
 const termInput = document.getElementById('terminal-input');
 const termHistory = document.getElementById('terminal-history');
+
+// Focar no terminal ao clicar na área dele (substitui o autofocus que causava o pulo da página)
+document.querySelector('.terminal')?.addEventListener('click', () => {
+  termInput.focus();
+});
 
 const appendLine = (text, color = 'var(--cream)') => {
   const line = document.createElement('div');
