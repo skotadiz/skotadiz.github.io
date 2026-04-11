@@ -238,43 +238,87 @@ document.querySelector('.terminal')?.addEventListener('click', () => {
   termInput.focus();
 });
 
-const appendLine = (text, color = 'var(--cream)') => {
+const appendLine = (text, color = 'var(--cream)', isHtml = false) => {
   const line = document.createElement('div');
   line.className = 't-line';
-  line.innerHTML = `<span class="t-cmd">></span> <span style="color:${color}">${text}</span>`;
+  if (isHtml) {
+    line.innerHTML = `<span class="t-cmd">></span> <span style="color:${color}">${text}</span>`;
+  } else {
+    const span = document.createElement('span');
+    span.style.color = color;
+    span.textContent = text;
+    line.innerHTML = `<span class="t-cmd">></span> `;
+    line.appendChild(span);
+  }
   termHistory.appendChild(line);
   const body = termInput.closest('.terminal-body');
   body.scrollTop = body.scrollHeight;
 };
 
 const commands = {
-  help: "Comandos: about, skills, contact, utomação. | CYBER: Pentesting, SOC, Threat Intelligence, Networking, Linux. | LANG: PT, EN, ES.",
-  contact: "Email: florianop2008@gmail.com | LinkedIn: /in/pedro-augusto-floriano",
-  social: "Ações: Arrecadação ETEC, Apoio RS, Doador de Sangue.",
-  badges: "Certificações Credly: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.",
-  hack: "Iniciando sequência de bypass...",
-  clear: "CLEAR"
+  help: "Comandos disponíveis: ls, about, skills, contact, automation, neofetch, audit, clear. Use as setas ↑↓ para histórico.",
+  ls: "projetos/  certificados/  curriculo.pdf  contato.txt",
+  about: "Pedro Augusto Floriano, 18 anos, Sorocaba/SP. Técnico em Eletrônica e Cibersegurança focado em proteção de sistemas e hardware.",
+  skills: "Cyber: Pentesting (Nmap, Burp), SOC, Networking (TCP/IP), Linux (Hardening). | Eletrônica: MCU, PCB Design, Automação.",
+  contact: "Email: florianop2008@gmail.com | LinkedIn: linkedin.com/in/pedro-augusto-floriano",
+  automation: "Desenvolvimento de sistemas embarcados e automação residencial/industrial com microcontroladores (Arduino/ESP32).",
+  social: "Ações: Arrecadação ETEC, Apoio RS (Enchentes), Doador de Sangue frequente.",
+  badges: "Certificações: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.",
+  neofetch: `<span>PAF-OS v1.0.0</span><br>
+             <span>-----------</span><br>
+             <span>OS: Linux / Bebop-Kernel</span><br>
+             <span>Uptime: 18 years, 3 months</span><br>
+             <span>Shell: zsh 5.8</span><br>
+             <span>CPU: Pedro Augusto @ 4.2GHz</span><br>
+             <span>Memory: 16GB / 32GB</span>`,
+  audit: "Iniciando varredura de vulnerabilidades..."
 };
 
+let cmdHistory = [];
+let historyIdx = -1;
+
 termInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (cmdHistory.length > 0 && historyIdx < cmdHistory.length - 1) {
+      historyIdx++;
+      termInput.value = cmdHistory[cmdHistory.length - 1 - historyIdx];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIdx > 0) {
+      historyIdx--;
+      termInput.value = cmdHistory[cmdHistory.length - 1 - historyIdx];
+    } else {
+      historyIdx = -1;
+      termInput.value = '';
+    }
+  }
+
   if (e.key === 'Enter') {
     const val = termInput.value.toLowerCase().trim();
+    if (val !== "") {
+      cmdHistory.push(val);
+      historyIdx = -1;
+    }
+
     const line = document.createElement('div');
     line.className = 't-line';
     
     if (val === 'clear') {
       termHistory.innerHTML = '';
-    } else if (val === 'hack') {
-      document.body.classList.add('hacking-mode');
-      appendLine("Iniciando injeção SQL...", "var(--red)");
-      setTimeout(() => appendLine("Bypass de firewall concluído.", "var(--red)"), 500);
-      setTimeout(() => appendLine("Acesso ROOT garantido.", "var(--red)"), 1000);
+    } else if (val === 'audit' || val === 'hack') {
+      appendLine("Nmap scan report for internal_network (192.168.1.1)...", "var(--teal)");
+      setTimeout(() => appendLine("PORT 80/TCP OPEN [HTTP]", "var(--gold)"), 500);
+      setTimeout(() => appendLine("PORT 22/TCP OPEN [SSH]", "var(--gold)"), 1000);
+      setTimeout(() => appendLine("Analisando cabeçalhos de segurança...", "var(--cream)"), 1500);
       setTimeout(() => {
-        document.body.classList.remove('hacking-mode');
-        appendLine("Conexão encerrada pelo host remoto.", "var(--gold)");
-      }, 4000);
+        appendLine("Relatório gerado: Nenhuma vulnerabilidade crítica encontrada.", "var(--teal)");
+      }, 3000);
+    } else if (val === 'neofetch') {
+      appendLine(commands.neofetch, 'var(--gold)', true);
     } else if (commands[val]) {
-      appendLine(commands[val]);
+      appendLine(commands[val], val === 'ls' ? 'var(--cyan)' : 'var(--cream)');
     } else if (val !== "") {
       appendLine(`Erro: Comando '${val}' não reconhecido.`, "var(--red)");
     }
