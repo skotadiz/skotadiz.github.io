@@ -8,175 +8,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<style>
-  /* Ajustes de Responsividade */
-  /* CUSTOM SCROLLBAR - Forçado no HTML para evitar cache do arquivo externo no GitHub Pages */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--ink); }
-  ::-webkit-scrollbar-thumb { background: var(--muted2); border: 1px solid rgba(245, 166, 35, 0.1); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-  /* Suporte para Firefox */
-  * { scrollbar-width: thin; scrollbar-color: var(--muted2) var(--ink); }
-
-  /* Botão do Menu Mobile */
-  .menu-toggle {
-    display: none;
-    background: none;
-    border: 1px solid rgba(245, 166, 35, 0.3);
-    color: var(--gold);
-    font-size: 1.2rem;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    z-index: 1001;
-  }
-
-  /* Melhora a legibilidade e contraste do menu de navegação */
-  nav ul li a {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    text-decoration: none;
-    letter-spacing: 0.5px;
-    transition: color 0.3s ease;
-  }
-
-  .cert-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-  }
-  .cert-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .cert-card:hover {
-    background: rgba(245, 166, 35, 0.05);
-    border-color: var(--gold);
-    transform: translateY(-5px);
-  }
-  .cert-img-wrap img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-    margin-bottom: 1rem;
-  }
-  @media (max-width: 850px) {
-    nav {
-      padding: 15px 5% !important;
-      background: rgba(10, 10, 10, 0.95) !important; /* Fundo sólido para leitura no mobile */
-      border-bottom: 1px solid rgba(245, 166, 35, 0.2);
-      height: auto !important;
-      justify-content: space-between !important;
-      position: sticky; /* Mantém o menu sempre acessível */
-      top: 0;
-      z-index: 1000;
-    }
-    .menu-toggle {
-      display: block !important;
-    }
-    .nav-ep, .nav-logo .dot {
-      display: none !important;
-    }
-    nav ul {
-      display: none !important; /* Esconde por padrão no mobile */
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background: rgba(10, 10, 10, 0.98);
-      padding: 20px 0 !important;
-      gap: 5px !important;
-      border-bottom: 1px solid var(--gold);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
-    nav.active ul {
-      display: flex !important; /* Mostra quando o menu estiver ativo */
-    }
-    nav ul li {
-      width: 100%;
-      text-align: center;
-    }
-    nav ul li a {
-      padding: 15px !important; 
-      width: 100%;
-      font-size: 0.9rem !important;
-      display: inline-block;
-    }
-    #hero {
-      flex-direction: column;
-      padding: 0 5% !important;
-      justify-content: center !important;
-      text-align: center;
-      min-height: 100vh;
-    }
-    .hero-left {
-      align-items: center !important;
-      width: 100% !important;
-    }
-    .glitch-name {
-      font-size: 3.5rem !important;
-      line-height: 1.1 !important;
-    }
-    .hero-tags {
-      justify-content: center !important;
-      flex-wrap: wrap;
-    }
-    .hero-ctas {
-      justify-content: center !important;
-      flex-direction: column;
-      width: 100%;
-    }
-    .hero-bg-gif {
-      opacity: 0.1 !important;
-    }
-    .sobre-grid, .skills-layout, .proj-grid, .contato-grid, .cert-grid, .social-grid {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 2rem !important;
-    }
-    .inner {
-      padding: 4rem 5% !important;
-    }
-    .sec-title {
-      font-size: 2.2rem !important;
-    }
-    .terminal {
-      font-size: 0.75rem !important;
-    }
-    .timeline::before {
-      left: 20px !important;
-    }
-    .tl-item {
-      padding-left: 45px !important;
-    }
-    .tl-dot {
-      left: 12px !important;
-    }
-    .konami-hint, .scroll-hint {
-      display: none !important;
-    }
-    .egg-inner {
-      width: 90% !important;
-    }
-  }
-</style>
 </head>
 <body>
 
 <!-- LOFI AUDIO -->
-<audio id="background-lofi" src="lofi.mp3" loop volume="0.02"></audio>
+<audio id="background-lofi" src="lofi.mp3" loop></audio>
 
 <!-- CURSOR -->
 <div id="cursor"></div>
@@ -184,8 +20,19 @@
 
 <!-- OVERLAYS -->
 <canvas id="particles"></canvas>
+<canvas id="matrix-canvas" style="position:fixed;inset:0;z-index:0;display:none;opacity:0.15;pointer-events:none;"></canvas>
+<div id="scan-line" class="scan-line-overlay"></div>
 <div class="noise"></div>
 <div class="scanlines"></div>
+
+<!-- SAO SYSTEM OVERLAYS -->
+<div id="sao-announcement-overlay" class="sao-announcement-wrap"></div>
+<div id="sao-warning-overlay" class="sao-warning-wrap">
+  <div class="sao-warning-hex"><span>WARNING</span></div>
+</div>
+
+<!-- BEBOP WANTED POSTER -->
+<div id="wanted-overlay" class="wanted-poster-overlay" onclick="this.style.display='none'"></div>
 
 <!-- SVG DISTORTION FILTER -->
 <svg width="0" height="0" style="position:absolute; pointer-events:none;">
@@ -233,7 +80,10 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo"><div class="dot"></div>PAF</div>
-  <button id="menu-toggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
+  <button id="menu-toggle" class="menu-toggle">
+    <span>MENU //</span>
+    <i class="fas fa-terminal"></i>
+  </button>
   <ul>
     <li><a href="#sobre" cursor="none">Sobre</a></li>
     <li><a href="#habilidades">Skills</a></li>
@@ -241,14 +91,164 @@
     <li><a href="#experiencia">Timeline</a></li>
     <li><a href="#projetos">Projetos</a></li>
     <li><a href="#social">Social</a></li>
-    <li><a href="#contato">Contato</a></li>
+    <li><a href="#conquistas" style="color:var(--gold)">Conquistas</a></li>
+    <li><a href="javascript:void(0)" onclick="toggleHangar()" style="color:var(--gold)" title="Hangar [HW]">Hangar [HW]</a></li>
   </ul>
   <div class="nav-ep"><div class="live-dot"></div>Disponível para oportunidades</div>
 </nav>
 
 <!-- SYSTEM HUD -->
-<div class="system-hud reveal-r">
-  <div class="hud-line"><span>CPU_
+<div class="system-hud" id="main-hud">
+  <div class="sao-player-tag">
+    <span class="sao-lv">LV.<span id="sao-lv-val">1</span></span>
+    <span class="sao-name">PEDRO</span>
+  </div>
+  <div class="sao-xp-bar">
+    <div id="sao-xp-fill" class="sao-xp-fill"></div>
+  </div>
+  <div class="sao-hp-container">
+    <div id="sao-hp-fill" class="sao-hp-fill"></div>
+  </div>
+  <div class="sao-sp-container">
+    <div id="sao-sp-fill" class="sao-sp-fill"></div>
+  </div>
+  <div class="hud-line"><span>FLOOR_</span> <span id="hud-floor">01</span></div>
+  <div class="hud-line"><span>CPU_</span> <span id="hud-cpu">--%</span></div>
+  <canvas id="cpu-graph" width="100" height="20" style="margin-bottom:8px; opacity:0.6"></canvas>
+  <div class="hud-line"><span>TEMP_</span> <span id="hud-temp">--°C</span></div>
+  <div class="hud-line"><span>NET_</span> <span id="hud-net">--ms</span></div>
+  <div class="hud-line"><span>MEM_</span> <span id="hud-mem">--MB</span></div>
+  <div class="hud-line"><span>DATE_TIME</span> <span id="hud-rtc">--:--:--</span></div>
+  <div class="hud-line"><span>SAT_LINK</span> <span id="hud-sat" style="color:var(--gold)">LINKING...</span></div>
+  <div class="hud-line"><span>CARDINAL</span> <span style="color:var(--teal)">ACTIVE</span></div>
+  <div class="sao-msg-alert"><i class="far fa-envelope"></i> 1 NEW SYSTEM MESSAGE</div>
+  <div class="hud-line"><span>DISK_IO</span> <span id="hud-disk">IDLE</span></div>
+  <div class="hud-line"><span>UPTIME_</span> <span id="hud-uptime">00:00</span></div>
+  <div class="hud-line"><span>PWR_SRC</span> <span id="hud-pwr">--%</span></div>
+  <div class="hud-line" style="color:var(--gold)"><span>IP_ADDR</span> <span id="hud-ip">LOGGING...</span></div>
+  <div class="hud-sep"></div>
+  <!-- Botão de Acesso Rápido ao Menu SAO -->
+  <button class="sao-menu-trigger" onclick="toggleSAOMenu()">
+    <i class="fas fa-th-large"></i> MAIN_MENU [M]
+  </button>
+  <div class="hud-sep"></div>
+  <div class="hud-label">Live Security Logs</div>
+  <div id="hud-logs" class="hud-logs">
+    <div class="log-line">IDPS: Kernel 6.1.0-bebop active</div>
+  </div>
+  <div class="hud-sep"></div>
+  <div class="hud-label">Audio Stream Output</div>
+  <div id="hud-viz" class="hud-viz">
+    <div class="viz-bar"></div><div class="viz-bar"></div>
+    <div class="viz-bar"></div><div class="viz-bar"></div>
+    <div class="viz-bar"></div>
+  </div>
+</div>
+
+<div id="sao-notifications" class="sao-notif-container"></div>
+
+<!-- HANGAR MODAL -->
+<div id="hangar-modal" class="vault-overlay">  <div class="vault-window" style="--border-color:var(--gold); --shadow-color:rgba(245,166,35,0.2); --bg-header:var(--gold); max-width:600px;">
+    <div class="vault-header">
+      <span class="vh-title"><i class="fas fa-rocket"></i> SHIP_SPEC_DATABASE: SWORDFISH_II</span>
+      <button class="vh-close" onclick="toggleHangar()">×</button>
+    </div>
+    <div class="vault-content" style="display:block;">
+      <div class="blueprint-view">
+        <div class="b-spec"><span>MODEL:</span> MONO RACER / SWORDFISH II</div>
+        <div class="b-spec"><span>ENGINE:</span> ROLLS-ROYCE AF-1C HERMES</div>
+        <div class="b-spec"><span>MAX_SPEED:</span> 1.2M IN ATMOSPHERE</div>
+        <div class="b-spec"><span>WEAPONS:</span> 4 BARREL 20MM CANNON / PLASMA CANNON</div>
+        <div class="b-grid-line"></div>
+        <p style="font-size:0.65rem; color:var(--muted); line-height:1.4; margin-top:10px;">
+          A Swordfish II é uma nave de corrida Mono Racer altamente modificada por Doohan para operações de caça de recompensas. Pertencente a Spike Spiegel.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAO FLOATING MENU -->
+<div id="sao-menu" class="sao-menu-overlay">
+  <div class="sao-menu-column">
+    <div class="sao-menu-item" onclick="toggleQuestLog()"><i class="fas fa-scroll"></i><span>Quests</span></div>
+    <div class="sao-menu-item" onclick="toggleInventory()"><i class="fas fa-briefcase"></i><span>Inventory</span></div>
+    <div class="sao-menu-item" onclick="toggleBlackMarket()"><i class="fas fa-shopping-cart"></i><span>Black Market</span></div>
+    <div class="sao-menu-item" onclick="location.href='#habilidades'"><i class="fas fa-khanda"></i><span>Skills</span></div>
+    <div class="sao-menu-item" onclick="toggleHangar()"><i class="fas fa-cog"></i><span>Equipment</span></div>
+    <div class="sao-menu-item" onclick="location.href='#contato'"><i class="fas fa-envelope"></i><span>Message</span></div>
+    <div class="sao-menu-item exit" onclick="toggleSAOMenu()"><i class="fas fa-times"></i><span>Close</span></div>
+  </div>
+</div>
+
+<!-- QUEST LOG MODAL -->
+<div id="quest-modal" class="vault-overlay">
+  <div class="vault-window" style="border-color:var(--gold)">
+    <div class="vault-header" style="background:var(--gold)">
+      <span class="vh-title"><i class="fas fa-list-ul"></i> SYSTEM_QUEST_LOG</span>
+      <button class="vh-close" onclick="toggleQuestLog()">×</button>
+    </div>
+    <div class="vault-content" style="display:block">
+      <div id="quest-list" class="quest-list">
+        <!-- Quests populadas via JS -->
+      </div>
+      <div class="file-status">CARDINAL: MONITORANDO PROGRESSÃO DO JOGADOR</div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY MODAL (RPG STYLE) -->
+<div id="inventory-modal" class="vault-overlay">
+  <div class="vault-window" style="border-color:var(--teal); max-width:650px;">
+    <div class="vault-header">
+      <span class="vh-title"><i class="fas fa-suitcase"></i> STORAGE_SLOTS: [CERTIFICATIONS]</span>
+      <button class="vh-close" onclick="toggleInventory()">×</button>
+    </div>
+    <div class="vault-content" style="display:block">
+      <div id="inventory-grid" class="inventory-rpg-grid">
+        <!-- Itens injetados via JS -->
+      </div>
+      <div class="file-status">TOTAL_WEIGHT: 0.4kg / 50.0kg | SLOTS: 6/100</div>
+    </div>
+  </div>
+</div>
+
+<!-- BLACK MARKET MODAL -->
+<div id="market-modal" class="vault-overlay">
+  <div class="vault-window" style="border-color:var(--gold); max-width:700px;">
+    <div class="vault-header" style="background:var(--gold)">
+      <span class="vh-title"><i class="fas fa-shopping-cart"></i> BLACK_MARKET_TERMINAL</span>
+      <button class="vh-close" onclick="toggleBlackMarket()">×</button>
+    </div>
+    <div class="vault-content" style="display:block">
+      <div id="market-grid" class="market-rpg-grid">
+        <!-- Itens do BlackMarketService.java injetados aqui -->
+      </div>
+      <div class="file-status">AVISO: Transações via Woolongs não são rastreáveis pela ISSSP.</div>
+    </div>
+  </div>
+</div>
+
+<!-- THE VAULT MODAL -->
+<div id="vault-modal" class="vault-overlay">
+  <div class="vault-window">
+    <div class="vault-header">
+      <span class="vh-title"><i class="fas fa-folder-open"></i> DECRYPTED_FILES_SYSTEM</span>
+      <button class="vh-close" onclick="toggleVault()">×</button>
+    </div>
+    <div class="vault-content">
+      <div class="file-item" onclick="appendLine('Acessando curriculo_v3.pdf...', 'var(--teal)')">
+        <i class="far fa-file-pdf"></i>
+        <span>curriculo.pdf</span>
+      </div>
+      <div class="file-item" onclick="decryptEffect('NOTA_INTERNA: O alvo está em Sorocaba.')">
+        <i class="far fa-file-alt"></i>
+        <span>intel_report.txt</span>
+      </div>
+      <div class="file-status">SYSLOG: VOLUME_MOUNTED_READ_ONLY</div>
+    </div>
+  </div>
+</div>
 
 <!-- HERO -->
 <section id="hero">
@@ -256,13 +256,24 @@
   <img src="bang.gif" class="hero-bg-gif" alt="">
 
   <div class="hero-left">
-    <div class="hero-ep">// Sorocaba, SP &mdash; 18 anos &mdash; primeiro emprego</div>
-    <h1 class="glitch-name" data-text="PEDRO">PEDRO</h1>
-    <h1 class="glitch-name" data-text="AUGUSTO" style="color:var(--gold);animation-delay:.6s">AUGUSTO</h1>
-    <h1 class="glitch-name" data-text="FLORIANO" style="animation-delay:.8s">FLORIANO</h1>
+    <div class="hero-id-tag" style="border-left: 2px solid var(--gold); padding-left: 15px;">
+      <span class="id-label" style="opacity: 0.6;">REGISTRY_ID //</span>
+      <span class="id-value" style="font-weight: 600;">PAF-2008-SRQ</span>
+      <span class="id-status" style="color: var(--teal); margin-left: 10px;">[ ONLINE ]</span>
+    </div>
+    
+    <div class="hero-name-container">
+      <h1 class="glitch-name" data-text="PEDRO AUGUSTO" style="letter-spacing: 0.1em;">
+        PEDRO <span style="color:var(--gold)">AUGUSTO</span>
+      </h1>
+      <h1 class="glitch-name sub-name" data-text="FLORIANO" style="font-size: 3rem; margin-top: -10px; opacity: 0.8;">
+        FLORIANO
+      </h1>
+    </div>
 
     <div class="hero-subtitle">
-      <span class="typewriter">Técnico em Eletrônica &amp; Cibersegurança</span>
+      <i class="fas fa-microchip" style="color: var(--teal);"></i> 
+      <span class="typewriter" style="border-right: 2px solid var(--gold); text-decoration: none;">Electronics Tech &amp; Cybersecurity Specialist</span>
     </div>
 
     <div class="hero-tags">
@@ -273,12 +284,10 @@
     </div>
 
     <div class="hero-ctas">
-      <a href="#contato" class="btn-primary">↗ Entrar em contato</a>
+      <a href="#contato" class="btn-primary" style="text-decoration: none;">↗ Entrar em contato</a>
       <a href="#projetos" class="btn-ghost">Ver projetos →</a>
     </div>
   </div>
-
-  <div class="scroll-hint">scroll</div>
 </section>
 
 <!-- SOBRE -->
@@ -362,7 +371,7 @@
         <div class="skill-row"><div class="skill-meta"><span class="sk-name">OSINT &amp; Recon</span><span class="sk-pct">70%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:70%"></div></div></div>
         <div class="skill-row"><div class="skill-meta"><span class="sk-name">Criptografia</span><span class="sk-pct">68%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:68%"></div></div></div>
         <div class="skill-row"><div class="skill-meta"><span class="sk-name">Análise de Vulnerab.</span><span class="sk-pct">72%</span></div><div class="bar-track"><div class="bar-fill b" style="--w:72%"></div></div></div>
-      </div>
+       </div>
 
       <div class="skill-panel reveal">
         <div class="sp-icon t">🌍</div>
@@ -386,10 +395,12 @@
 <section id="certificacoes">
   <div class="inner">
     <div class="sec-label">03 &mdash; Certificações</div>
-    <h2 class="sec-title">Badges</h2>
-    <div class="cert-grid">
+    <h2 class="sec-title">Bounty <span>Board</span></h2>
+    <div class="bounty-notice">// Capturando recompensas técnicas através de certificações validadas</div>
+    <div class="cert-grid bounty-grid">
       <!-- Cyber Threat Management -->
-      <a href="https://www.credly.com/badges/a6aec5da-8aac-498f-86a5-430e3f0fc504/public_url" target="_blank" class="cert-card reveal">
+      <a href="https://www.credly.com/badges/a6aec5da-8aac-498f-86a5-430e3f0fc504/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
+        <div class="bounty-tag">CAPTURED</div>
         <div class="cert-img-wrap">
           <img src="cyber-threat-management.png" alt="Cyber Threat Management">
         </div>
@@ -397,7 +408,7 @@
       </a>
       
       <!-- Ethical Hacker -->
-       <a href="https://www.credly.com/badges/0171a51d-2d8f-4a65-8c37-200cefb7d60e/public_url" target="_blank" class="cert-card reveal">
+       <a href="https://www.credly.com/badges/0171a51d-2d8f-4a65-8c37-200cefb7d60e/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
         <div class="cert-img-wrap">
           <img src="ethical-hacker.png" alt="Ethical Hacker">
         </div>
@@ -405,7 +416,7 @@
       </a>
 
       <!-- Introduction to Cybersecurity -->
-      <a href="https://www.credly.com/badges/768112f5-c83c-4177-b629-bae6ad7995de/public_url" target="_blank" class="cert-card reveal">
+      <a href="https://www.credly.com/badges/768112f5-c83c-4177-b629-bae6ad7995de/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
         <div class="cert-img-wrap">
           <img src="introduction-to-cybersecurity.png" alt="Introduction to Cybersecurity">
         </div>
@@ -413,7 +424,7 @@
       </a>
 
       <!-- Networking Academy Learn-A-Thon 2025 -->
-      <a href="https://www.credly.com/badges/f694d0b9-ce4e-4bdf-bbb6-ba027ea89e98/public_url" target="_blank" class="cert-card reveal">
+      <a href="https://www.credly.com/badges/f694d0b9-ce4e-4bdf-bbb6-ba027ea89e98/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
         <div class="cert-img-wrap">
           <img src="networking-academy-learn-a-thon-2025.png" alt="Networking Academy Learn-A-Thon 2025">
         </div>
@@ -421,7 +432,7 @@
       </a>
 
       <!-- Network Support and Security -->
-      <a href="https://www.credly.com/badges/1fc6ac1e-707d-4891-836b-e574f32172f6/public_url" target="_blank" class="cert-card reveal">
+      <a href="https://www.credly.com/badges/1fc6ac1e-707d-4891-836b-e574f32172f6/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
         <div class="cert-img-wrap">
           <img src="network-support-and-security.png" alt="Network Support and Security">
         </div>
@@ -429,29 +440,28 @@
       </a>
 
       <!-- Network Technician Career Path -->
-      <a href="https://www.credly.com/badges/e84fc504-c3fd-4423-bd91-2412b9080766/public_url" target="_blank" class="cert-card reveal">
+      <a href="https://www.credly.com/badges/e84fc504-c3fd-4423-bd91-2412b9080766/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
         <div class="cert-img-wrap">
           <img src="network-technician-career-path.png" alt="Network Technician Career Path">
         </div>
         <div class="cert-name">Network Technician Career Path</div>
       </a>
 
+      <!-- Introduction to Modern AI -->
+      <a href="https://www.credly.com/badges/40c1287e-6356-412e-a9fc-ceedafda6f1b/public_url" target="_blank" class="cert-card reveal" onclick="playItemSound()">
+        <div class="cert-img-wrap">
+          <img src="introduction-to-modern-ai.png" alt="Introduction to Modern AI">
+        </div>
+        <div class="cert-name">Introduction to Modern AI</div>
+      </a>
+      
     </div>
 
     <!-- NUVEM DE COMPETÊNCIAS -->
     <div class="comp-container reveal">
       <div class="comp-title">// Competências validadas por badges</div>
       <div class="comp-tags" id="validated-skills">
-        <span class="comp-tag">Threat Intelligence</span>
-        <span class="comp-tag">SOC Operations</span>
-        <span class="comp-tag">Penetration Testing</span>
-        <span class="comp-tag">Vulnerability Assessment</span>
-        <span class="comp-tag">Routing & Switching</span>
-        <span class="comp-tag">Network Troubleshooting</span>
-        <span class="comp-tag">TCP/IP</span>
-        <span class="comp-tag">Information Security</span>
-        <span class="comp-tag">Ethical Hacking</span>
-        <span class="comp-tag">Linux Security</span>
+        <!-- Injetado via script.js para evitar duplicatas -->
       </div>
     </div>
   </div>
@@ -514,28 +524,38 @@
     <div class="sec-label">05 &mdash; Projetos</div>
     <h2 class="sec-title">Trabalhos <span>&amp; Projetos</span></h2>
     <div class="proj-grid">
-      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)" onmouseleave="resetMouse(this)">
         <div class="proj-num">01</div>
         <span class="proj-cat seg">Cibersegurança</span>
         <div class="proj-h">Análise de Redes Locais</div>
+        <div class="sao-property-window">
+          <div class="sao-prop-header">Object Control</div>
+          <div class="sao-prop-line"><span>Class:</span> Artifact</div>
+          <div class="sao-prop-line"><span>Priority:</span> 38</div>
+        </div>
         <p class="proj-p">Mapeamento e análise de tráfego em redes locais, identificação de dispositivos, portas abertas e potenciais vulnerabilidades usando ferramentas open source.</p>
         <div class="proj-stack"><span class="stack-tag">Nmap</span><span class="stack-tag">Wireshark</span><span class="stack-tag">Kali Linux</span><span class="stack-tag">TCP/IP</span></div>
       </div>
-      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)" onmouseleave="resetMouse(this)">
         <div class="proj-num">02</div>
         <span class="proj-cat ele">Eletrônica</span>
         <div class="proj-h">Automação com Arduino</div>
+        <div class="sao-property-window">
+          <div class="sao-prop-header">Object Control</div>
+          <div class="sao-prop-line"><span>Class:</span> Logic/Circuit</div>
+          <div class="sao-prop-line"><span>Priority:</span> 42</div>
+        </div>
         <p class="proj-p">Sistema de automação residencial com Arduino, controlando atuadores e sensores de temperatura e luminosidade via interface serial e lógica programada em C.</p>
         <div class="proj-stack"><span class="stack-tag">Arduino</span><span class="stack-tag">C/C++</span><span class="stack-tag">Sensores</span><span class="stack-tag">Atuadores</span></div>
       </div>
-      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)" onmouseleave="resetMouse(this)">
         <div class="proj-num">03</div>
         <span class="proj-cat seg">Cibersegurança</span>
         <div class="proj-h">Hardening de Sistema Linux</div>
         <p class="proj-p">Aplicação de boas práticas de segurança em Linux: firewall, SSH hardening, permissões de arquivo, monitoramento de logs e configurações de kernel seguras.</p>
         <div class="proj-stack"><span class="stack-tag">Linux</span><span class="stack-tag">iptables</span><span class="stack-tag">Bash</span><span class="stack-tag">OpenSSH</span></div>
       </div>
-      <div class="proj-card reveal" onmousemove="trackMouse(event,this)">
+      <div class="proj-card reveal" onmousemove="trackMouse(event,this)" onmouseleave="resetMouse(this)">
         <div class="proj-num">04</div>
         <span class="proj-cat ling">Linguística</span>
         <div class="proj-h">Projeto OBLI — Análise Linguística</div>
@@ -581,6 +601,20 @@
   </div>
 </section>
 
+<!-- CONQUISTAS -->
+<section id="conquistas">
+  <div class="inner">
+    <div class="sec-label">07 &mdash; Progression</div>
+    <h2 class="sec-title">Sistema de <span>Conquistas</span></h2>
+    <p class="sobre-p" style="margin-top:-2rem; margin-bottom:3rem; font-size:0.8rem">
+      // Explore todas as áreas da nave para descriptografar os registros e subir de nível.
+    </p>
+    <div id="achievement-grid" class="achievement-grid">
+      <!-- Populando via JS -->
+    </div>
+  </div>
+</section>
+
 <!-- CONTATO -->
 <section id="contato">
   <div class="inner">
@@ -591,7 +625,7 @@
         <h3>Pronto para a missão</h3>
         <p>Busco minha primeira oportunidade nas áreas de eletrônica, cibersegurança ou tecnologia. Se você tem uma vaga ou projeto, me manda uma mensagem — respondo rápido.</p>
         <div class="c-links">
-          <a href="mailto:florianop2008@gmail.com" class="c-link"><div class="c-ico">✉</div>florianop2008@gmail.com</a>
+          <a href="javascript:void(0)" onclick="copyEmail()" class="c-link" id="email-link"><div class="c-ico">✉</div><span id="email-text">florianop2008@gmail.com</span></a>
           <a href="https://linkedin.com/in/pedro-augusto-floriano" target="_blank" class="c-link"><div class="c-ico" style="font-size:.75rem;font-weight:700">in</div>linkedin.com/in/pedro-augusto-floriano</a>
           <a href="https://github.com/skotadiz" target="_blank" class="c-link"><div class="c-ico" style="font-size:.7rem;font-weight:700">gh</div>github.com/skotadiz</a>
           <div class="c-link" style="cursor:none"><div class="c-ico">📍</div>Sorocaba, SP — Brasil</div>
@@ -609,16 +643,55 @@
   </div>
 </section>
 
+<!-- BOSS BOUNTIES (NEW SECTION) -->
+<section id="boss-bounties" class="reveal">
+  <div class="inner">
+    <div class="sec-label">08 &mdash; High Value Targets</div>
+    <h2 class="sec-title">Floor <span>Bosses</span> / S-Rank</h2>
+    <div id="boss-container" class="bounty-grid">
+        <!-- Card Template para o Sistema Cardinal -->
+        <div class="cert-card boss-card">
+            <div class="bounty-tag" style="background:var(--red)">WARNING: BOSS DETECTED</div>
+            <div class="boss-title">THE GLEAM EYES [74F]</div>
+            <div class="boss-hp-bar">
+                <div class="hp-segment"></div><div class="hp-segment"></div><div class="hp-segment"></div>
+            </div>
+            <div class="boss-reward" id="boss-reward-74">REWARD: 50.000.000 ₩</div>
+            
+            <!-- Neural Link Stats Fix -->
+            <div class="neural-intel" style="font-size: 0.7rem; color: var(--teal); margin: 10px 0; border: 1px solid rgba(0,255,255,0.2); padding: 5px;">
+                <i class="fas fa-brain"></i> NEURAL_LINK: <span id="win-chance">WAITING_SYNC...</span><br>
+                <i class="fas fa-shield-alt"></i> CARDINAL_INTEL: SECURITY_BYPASS_READY
+            </div>
+            
+            <!-- Botão de Ação Claro para o Usuário -->
+            <button class="sao-button-primary" style="margin-top:15px; width:100%;" onclick="initiateBossDuel('74')">
+                <i class="fas fa-khanda"></i> CHALLENGE BOSS
+            </button>
+            <div class="security-hash" style="font-family:'Share Tech Mono'; font-size:0.6rem; opacity:0.5; margin-top:10px;">
+                ID: SHA-BEBOP-A7FB92</div>
+        </div>
+    </div>
+  </div>
+</section>
 <!-- FOOTER -->
 <footer>
   <div class="ft-left">© 2025 Pedro Augusto Floriano · Sorocaba, SP · Todos os direitos reservados</div>
   <div class="ft-right">"You're gonna carry that weight." — Cowboy Bebop</div>
 </footer>
 
-<!-- LOFI CONTROL BUTTON -->
-<button id="lofi-toggle" class="lofi-control">
-  <i class="fas fa-volume-mute"></i>
-</button>
+<!-- LOFI CONTROL HUD -->
+<div class="lofi-player-container">
+  <button id="lofi-toggle" class="lofi-control">
+    <i class="fas fa-volume-mute"></i>
+  </button>
+  <div id="mini-viz" class="mini-viz">
+    <div class="mini-bar"></div>
+    <div class="mini-bar"></div>
+    <div class="mini-bar"></div>
+  </div>
+  <input type="range" id="vol-slider" class="vol-slider" min="0" max="100" value="2" orient="vertical">
+</div>
 <div class="konami-hint">↑↑↓↓←→←→BA — tente algo...</div>
 
 <script src="script.js" defer></script>
