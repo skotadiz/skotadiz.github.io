@@ -1,10 +1,12 @@
 package com.bebop.os.api.services;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Service de alto nível para processamento de recompensas intergalácticas.
@@ -19,19 +21,22 @@ public class BountyHunterService {
     public record Target(UUID id, String name, long reward, int dangerLevel, 
                         String floor, String status, String securityHash) {}
 
-    private final List<Target> database = new ArrayList<>();
+    private final Map<UUID, Target> database = new ConcurrentHashMap<>();
+    private final NeuralLinkManager neuralLinkManager;
 
-    public BountyHunterService() {
+    public BountyHunterService(NeuralLinkManager neuralLinkManager) {
+        this.neuralLinkManager = neuralLinkManager;
         // Inicializa com alvos padrão para o Sistema Cardinal
         createFloorBossBounty(74, "THE GLEAM EYES", 50000000);
         createFloorBossBounty(90, "THE FATAL SCYTHE", 150000000);
         createSyndicateTarget("VICIOUS", 300000000, 99);
     }
+
     /**
      * Filtra alvos de alto nível (S-Rank) usando Streams.
      */
     public List<Target> getHighValueTargets() {
-        return database.stream()
+        return database.values().stream()
                 .filter(t -> t.dangerLevel() > 75)
                 .sorted(Comparator.comparing(Target::reward).reversed())
                 .toList();
@@ -57,7 +62,7 @@ public class BountyHunterService {
      */
     public String calculateLoot(Target target) {
         if ("VICIOUS".equals(target.name())) return "LEGENDARY: [Red Dragon Katana]";
-        double roll = Math.random() * 100;
+        double roll = ThreadLocalRandom.current().nextDouble(100);
         // Novo: Loot Lendário mais dinâmico
         if (roll > 98.0) return "MYTHIC: [Holy Sword Excalibur]";
         if (roll > 90.0) return "LEGENDARY: [Dark Repulser Core]";
@@ -81,7 +86,7 @@ public class BountyHunterService {
                          "SHA-BEBOP-" + integrityHash.toUpperCase());
         
         // Profissionalmente: Adicionar ao banco de dados em memória
-        database.add(boss);
+        database.put(newId, boss);
         return boss;
     }
 
@@ -98,28 +103,39 @@ public class BountyHunterService {
             "ACTIVE",
             "SHA-REDDRAGON-" + Integer.toHexString(name.hashCode()).toUpperCase()
         );
-        database.add(target);
+        database.put(target.id(), target);
     }
 
     /**
      * Simula o resultado de um combate contra um Boss de Andar.
      * Mistura probabilidade estatística com o nível atual do jogador.
+     * Agora valida o estado do link neural antes de processar o duelo.
      */
-    public DuelResult challengeBoss(int currentPlayerLevel, double equipmentBonus, UUID bossId) {
-        return database.stream()
-                .filter(t -> t.id().equals(bossId) && t.status().equals("ACTIVE"))
-                .findFirst()
-                .map(target -> {
-                    double chance = calculateSuccessRate(currentPlayerLevel, equipmentBonus, target);
-                    boolean success = (Math.random() * 100) <= chance;
-                    
-                    if (success) {
-                        String summary = defeatTarget(target.id());
-                        return new DuelResult(true, chance, summary);
-                    }
-                    return new DuelResult(false, chance, "CONNECTION LOST: System eject. You were not strong enough to clear this floor.");
-                })
-                .orElse(new DuelResult(false, 0, "ERROR: Target not found."));
+    public DuelResult challengeBoss(UUID sessionId, UUID bossId) {
+        // 1. Validar estabilidade do link (Sync Rate > 50%)
+        if (!neuralLinkManager.isLinkStable(sessionId)) {
+            return new DuelResult(false, 0, "NEURAL_LINK_ABORT: Sync Rate below safe threshold (50%). Active cooling required.");
+        }
+
+        NeuralLinkManager.PlayerStats stats = neuralLinkManager.getSessionStats(sessionId);
+        Target target = database.get(bossId);
+
+        if (target == null || !"ACTIVE".equals(target.status())) {
+            return new DuelResult(false, 0, "CARDINAL_ERROR: Target not found in the current floor sector.");
+        }
+
+        // 2. Utiliza o combatPower calculado pelo NeuralLinkManager (Level + Bônus)
+        double chance = calculateSuccessRate(stats.level(), stats.combatPower() - stats.level(), target);
+        boolean success = ThreadLocalRandom.current().nextDouble(100) <= chance;
+
+        // Aplica desgaste neural independente do resultado
+        neuralLinkManager.applyStrain(sessionId, 12.5);
+
+        if (success) {
+            String summary = defeatTarget(bossId);
+            return new DuelResult(true, chance, summary);
+        }
+        return new DuelResult(false, chance, "SYNC_LOSS: Neural feedback overload. System eject initiated to prevent brain damage.");
     }
 
     public record DuelResult(boolean success, double winProbability, String message) {}
@@ -128,19 +144,27 @@ public class BountyHunterService {
      * Finaliza um contrato de Boss. No mundo de SAO, isso seria o "Floor Cleared".
      */
     public String defeatTarget(UUID targetId) {
-        return database.stream()
-                .filter(t -> t.id().equals(targetId))
-                .findFirst()
-                .map(t -> {
-                    database.remove(t);
-                    database.add(new Target(t.id(), t.name(), t.reward(), t.dangerLevel(), 
-                                          t.floor(), "CLEARED", t.securityHash()));
-                    
-                    String loot = calculateLoot(t);
-                    return String.format("CONGRATULATIONS! Floor Boss %s defeated. Reward: %d Woolongs. Loot: %s", 
-                                        t.name(), t.reward(), loot);
-                })
-                .orElse("ERROR: Target not found in Cardinal Database.");
+        Target t = database.get(targetId);
+        if (t == null) return "CARDINAL_ERROR: Target_ID mismatch in sector database.";
+
+        Target cleared = new Target(t.id(), t.name(), t.reward(), t.dangerLevel(), 
+                                   t.floor(), "CLEARED", t.securityHash());
+        database.put(targetId, cleared);
+
+        return String.format("FLOOR_CLEARED: Boss %s eliminated. Reward: %d ₩. Loot: %s", 
+                            cleared.name(), cleared.reward(), calculateLoot(cleared));
+    }
+
+    /**
+     * Executa um protocolo de meditação neural para restaurar a taxa de sincronização.
+     * Demonstra a integração de lógica de recuperação no Cardinal System.
+     */
+    public String initiateMeditation(UUID sessionId) {
+        NeuralLinkManager.PlayerStats stats = neuralLinkManager.getSessionStats(sessionId);
+        if (stats == null) return "ERROR: No active neural session found.";
+        
+        neuralLinkManager.applyStrain(sessionId, -25.0); // Valor negativo recupera o Sync Rate
+        return "RECOVERY_COMPLETE: Neural buffers cleared. Sync Rate stabilized.";
     }
 
     public void broadcastWantedNotice(Target target) {

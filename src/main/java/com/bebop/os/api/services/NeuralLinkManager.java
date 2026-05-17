@@ -37,4 +37,26 @@ public class NeuralLinkManager {
         PlayerStats stats = sessionCache.get(sessionId);
         return stats != null && stats.syncRate() > 50.0;
     }
+
+    /**
+     * Recupera as estatísticas atuais de uma sessão.
+     */
+    public PlayerStats getSessionStats(UUID sessionId) {
+        return sessionCache.get(sessionId);
+    }
+
+    /**
+     * Aplica desgaste neural após atividades intensas.
+     */
+    public void applyStrain(UUID sessionId, double amount) {
+        PlayerStats stats = sessionCache.get(sessionId);
+        if (stats != null) {
+            sessionCache.put(sessionId, new PlayerStats(
+                stats.level(),
+                stats.combatPower(),
+                Math.max(0, stats.syncRate() - amount),
+                amount > 15 ? "NEURAL_FATIGUE" : stats.gearStatus()
+            ));
+        }
+    }
 }

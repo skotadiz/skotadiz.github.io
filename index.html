@@ -113,6 +113,7 @@
   <div class="sao-sp-container">
     <div id="sao-sp-fill" class="sao-sp-fill"></div>
   </div>
+  <div class="hud-line" style="color:var(--gold); font-weight:bold;"><span>WOOLONGS_</span> <span id="hud-woolongs">0</span> ₩</div>
   <div class="hud-line"><span>FLOOR_</span> <span id="hud-floor">01</span></div>
   <div class="hud-line"><span>CPU_</span> <span id="hud-cpu">--%</span></div>
   <canvas id="cpu-graph" width="100" height="20" style="margin-bottom:8px; opacity:0.6"></canvas>
@@ -133,6 +134,10 @@
       <button class="sao-button-primary" style="background:var(--cyan); color:var(--ink); border-radius:0; height:30px;" onclick="triggerBurstLink()">
           <i class="fas fa-bolt"></i> BURST_LINK [B]
       </button>
+      <!-- Cooldown Bar -->
+      <div id="burst-cooldown-wrap" style="width: 100%; height: 2px; background: rgba(255,255,255,0.1); margin-top: 2px; display: none;">
+          <div id="burst-cooldown-fill" style="height: 100%; width: 0%; background: var(--gold); transition: width 0.1s linear;"></div>
+      </div>
   </div>
   <!-- Botão de Acesso Rápido ao Menu SAO -->
   <button class="sao-menu-trigger" onclick="toggleSAOMenu()">

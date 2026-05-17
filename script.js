@@ -12,10 +12,31 @@ window.playerPowerBoost = 0; // Inicializa o boost de poder global
 window.playerCritChance = 5; // Chance crítica inicial (%)
 window.playerMaxHP = 100; // HP máximo inicial
 let lastLevel = 1; // Rastreador de nível para eventos de Level Up
+let playerWoolongs = 0; // Saldo inicial de moedas
+let playerSyncRate = 100; // Sincronização neural global
 let isBurstLinkActive = false;
 let duelDeflected = false;
 let playerSP = 100;
 let currentCombatState = null;
+
+/* Configurações de Cooldown */
+let burstCooldownActive = false;
+let burstCooldownPercent = 0;
+
+const rarityColors = {
+    "COMMON": "var(--muted)",
+    "RARE": "var(--cyan)",
+    "LEGENDARY": "var(--gold)",
+    "MYTHIC": "var(--red)",
+    "ULTIMATE": "var(--teal)"
+};
+
+const networkDevices = [
+    { ip: "10.0.0.1", name: "GATEWAY_BEBOP", status: "SECURE", reward: 0 },
+    { ip: "10.0.0.42", name: "SWORDFISH_II_AVIONICS", status: "VULNERABLE", reward: 2500 },
+    { ip: "192.168.1.10", name: "CARDINAL_CORE", status: "ENCRYPTED", reward: 0 },
+    { ip: "172.16.0.5", name: "SYNDICATE_LISTENER", status: "SUSPICIOUS", reward: 5000 }
+];
 
 /**
  * Simula a detecção de ameaças em tempo real.
@@ -313,6 +334,16 @@ function regenStamina() {
         playerSP = Math.min(100, playerSP + 1);
         const spFill = document.getElementById('sao-sp-fill');
         if (spFill) spFill.style.width = playerSP + '%';
+        
+        // Feedback visual para o Burst Link quando pronto
+        const burstBtn = document.getElementById('burst-link-container');
+        if (burstBtn) {
+            if (playerSP >= 40) {
+                burstBtn.classList.add('ready-to-burst');
+            } else {
+                burstBtn.classList.remove('ready-to-burst');
+            }
+        }
     }
 }
 setInterval(regenStamina, 2000);
@@ -321,10 +352,16 @@ setInterval(regenStamina, 2000);
  * Burst Link: Efeito visual e de status que "congela" o ambiente.
  */
 function triggerBurstLink() {
-  if (isBurstLinkActive || playerSP < 40) {
+  if (isBurstLinkActive) return;
+  if (burstCooldownActive) {
+      saoNotify("SYSTEM OVERHEAT: Aguarde o resfriamento neural.", "var(--red)");
+      return;
+  }
+  if (playerSP < 40) {
       saoNotify("SP INSUFICIENTE PARA BURST LINK", "var(--red)");
       return;
   }
+
   isBurstLinkActive = true;
   playerSP -= 40;
   document.body.style.filter = "grayscale(1) contrast(1.5) brightness(0.8) hue-rotate(280deg)";
@@ -339,8 +376,32 @@ function triggerBurstLink() {
     window.playerPowerBoost -= 50;
     isBurstLinkActive = false;
     if(hudBtn) hudBtn.style.opacity = "1";
-    saoNotify("BURST LINK TERMINATED");
+    
+    // Inicia Cooldown de 20 segundos
+    startBurstCooldown(20000);
   }, 10000);
+}
+
+function startBurstCooldown(duration) {
+    burstCooldownActive = true;
+    burstCooldownPercent = 100;
+    const wrap = document.getElementById('burst-cooldown-wrap');
+    const fill = document.getElementById('burst-cooldown-fill');
+    if (wrap) wrap.style.display = 'block';
+
+    const start = Date.now();
+    const interval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        burstCooldownPercent = 100 - (elapsed / duration * 100);
+        if (fill) fill.style.width = burstCooldownPercent + '%';
+
+        if (elapsed >= duration) {
+            clearInterval(interval);
+            burstCooldownActive = false;
+            if (wrap) wrap.style.display = 'none';
+            saoNotify("BURST LINK READY", "var(--teal)");
+        }
+    }, 100);
 }
 
 // Atalho 'B' para Burst Link
@@ -385,25 +446,25 @@ function registerNewSkill(name, url) {
 
 // ─── QUEST SYSTEM LOGIC ───
 let quests = JSON.parse(localStorage.getItem('achievements_paf') || JSON.stringify({
-  hero: { title: "Início da Jornada", desc: "Acesse o sistema Bebop-OS", completed: false, icon: "fa-rocket", xp: 100 },
-  sobre: { title: "Dossiê Pessoal", desc: "Leia o perfil do tripulante", completed: false, icon: "fa-user-ninja", xp: 150 },
-  habilidades: { title: "Arsenal Técnico", desc: "Analise a árvore de skills", completed: false, icon: "fa-bolt", xp: 150 },
-  certificacoes: { title: "Bounty Board", desc: "Explore o quadro de recompensas", completed: false, icon: "fa-scroll", xp: 150 },
-  experiencia: { title: "Linha do Tempo", desc: "Sincronize com o passado", completed: false, icon: "fa-hourglass-half", xp: 150 },
-  projetos: { title: "Arquiteto de Dados", desc: "Inspecione os artefatos", completed: false, icon: "fa-microchip", xp: 200 },
-  social: { title: "Impacto Local", desc: "Veja as ações sociais", completed: false, icon: "fa-heart", xp: 150 },
-  conquistas: { title: "Completionist", desc: "Acesse a galeria de troféus", completed: false, icon: "fa-trophy", xp: 100 },
-  boss_74: { title: "Gleam Eyes", desc: "Vença o Boss do 74º andar", completed: false, icon: "fa-sword", xp: 500 },
-  boss_90: { title: "Reaper Defeated", desc: "Vença o Fatal Scythe no andar 90", completed: false, icon: "fa-ghost", xp: 1200 },
-  boss_vicious: { title: "The Real Folk Blues", desc: "Elimine o líder do sindicato", completed: false, icon: "fa-cross", xp: 3000 },
-  market_master: { title: "Whale", desc: "Compre todos os itens do mercado", completed: false, icon: "fa-shopping-cart", xp: 600 },
-  terminal_pro: { title: "Ghost in the Shell", desc: "Use 5 comandos diferentes no terminal", completed: false, icon: "fa-code", xp: 400 },
-  archivist: { title: "Data Miner", desc: "Use 'cat' em um arquivo secreto", completed: false, icon: "fa-file-code", xp: 250 },
-  wanted: { title: "Bounty Hunter", desc: "Gere um cartaz de procurado", completed: false, icon: "fa-user-secret", xp: 200 },
-  stacia_mode: { title: "God Mode", desc: "Ative privilégios de Stacia", completed: false, icon: "fa-crown", xp: 500 },
-  konami_master: { title: "Retro Hacker", desc: "Código Konami detectado", completed: false, icon: "fa-gamepad", xp: 300 },
-  hangar_engineer: { title: "Shipwright", desc: "Inspecionou a Swordfish II", completed: false, icon: "fa-rocket", xp: 200 },
-  audio_sync: { title: "Neural Harmony", desc: "Ajustou a frequência lofi", completed: false, icon: "fa-music", xp: 150 },
+  hero: { title: "Início da Jornada", desc: "Acesse o sistema Bebop-OS", completed: false, icon: "fa-rocket", xp: 100, woolongs: 5000 },
+  sobre: { title: "Dossiê Pessoal", desc: "Leia o perfil do tripulante", completed: false, icon: "fa-user-ninja", xp: 150, woolongs: 10000 },
+  habilidades: { title: "Arsenal Técnico", desc: "Analise a árvore de skills", completed: false, icon: "fa-bolt", xp: 150, woolongs: 10000 },
+  certificacoes: { title: "Bounty Board", desc: "Explore o quadro de recompensas", completed: false, icon: "fa-scroll", xp: 150, woolongs: 10000 },
+  experiencia: { title: "Linha do Tempo", desc: "Sincronize com o passado", completed: false, icon: "fa-hourglass-half", xp: 150, woolongs: 10000 },
+  projetos: { title: "Arquiteto de Dados", desc: "Inspecione os artefatos", completed: false, icon: "fa-microchip", xp: 200, woolongs: 15000 },
+  social: { title: "Impacto Local", desc: "Veja as ações sociais", completed: false, icon: "fa-heart", xp: 150, woolongs: 10000 },
+  conquistas: { title: "Completionist", desc: "Acesse a galeria de troféus", completed: false, icon: "fa-trophy", xp: 100, woolongs: 5000 },
+  boss_74: { title: "Gleam Eyes", desc: "Vença o Boss do 74º andar", completed: false, icon: "fa-sword", xp: 500, woolongs: 50000000 },
+  boss_90: { title: "Reaper Defeated", desc: "Vença o Fatal Scythe no andar 90", completed: false, icon: "fa-ghost", xp: 1200, woolongs: 150000000 },
+  boss_vicious: { title: "The Real Folk Blues", desc: "Elimine o líder do sindicato", completed: false, icon: "fa-cross", xp: 3000, woolongs: 300000000 },
+  market_master: { title: "Whale", desc: "Compre todos os itens do mercado", completed: false, icon: "fa-shopping-cart", xp: 600, woolongs: 100000 },
+  terminal_pro: { title: "Ghost in the Shell", desc: "Use 5 comandos diferentes no terminal", completed: false, icon: "fa-code", xp: 400, woolongs: 20000 },
+  archivist: { title: "Data Miner", desc: "Use 'cat' em um arquivo secreto", completed: false, icon: "fa-file-code", xp: 250, woolongs: 5000 },
+  wanted: { title: "Bounty Hunter", desc: "Gere um cartaz de procurado", completed: false, icon: "fa-user-secret", xp: 200, woolongs: 2500 },
+  stacia_mode: { title: "God Mode", desc: "Ative privilégios de Stacia", completed: false, icon: "fa-crown", xp: 500, woolongs: 0 },
+  konami_master: { title: "Retro Hacker", desc: "Código Konami detectado", completed: false, icon: "fa-gamepad", xp: 300, woolongs: 9999 },
+  hangar_engineer: { title: "Shipwright", desc: "Inspecionou a Swordfish II", completed: false, icon: "fa-rocket", xp: 200, woolongs: 1000 },
+  audio_sync: { title: "Neural Harmony", desc: "Ajustou a frequência lofi", completed: false, icon: "fa-music", xp: 150, woolongs: 500 },
 }));
 
 // Inicialização de atributos baseada no progresso salvo
@@ -417,7 +478,9 @@ function saveQuests() { localStorage.setItem('achievements_paf', JSON.stringify(
 function completeQuest(id) {
   if (quests[id] && !quests[id].completed) {
     quests[id].completed = true;
-    saoNotify(`QUEST COMPLETE: ${quests[id].title}`);
+    const reward = quests[id].woolongs || 0;
+    playerWoolongs += reward;
+    saoNotify(`QUEST COMPLETE: ${quests[id].title} (+${reward.toLocaleString()} ₩)`);
     saveQuests();
     renderAchievements();
   }
@@ -453,17 +516,17 @@ function renderAchievements() {
 
 let playerInventory = [];
 const marketCatalog = [
-  { id: "SW-01", name: "Plasma Cannon [Mk.I]", type: "HARDWARE", cost: 500000, power: 15.5 },
-  { id: "SAO-EL", name: "Elucidator [Carbon]", type: "COMBAT", cost: 1200000, power: 25.0 },
-  { id: "SEC-BR", name: "Kernel Rootkit", type: "SECURITY", cost: 300000, power: 10.0 },
-  { id: "SW-ENG", "name": "Hermes Engine", type: "HARDWARE", cost: 800000, power: 18.2 }
+  { id: "SW-01", name: "Plasma Cannon [Mk.I]", type: "HARDWARE", cost: 500000, power: 15.5, rarity: "RARE" },
+  { id: "SAO-EL", name: "Elucidator [Carbon Steel]", type: "COMBAT", cost: 1200000, power: 25.0, rarity: "LEGENDARY" },
+  { id: "SEC-BR", name: "Kernel Bypass Rootkit", type: "SECURITY", cost: 300000, power: 10.0, rarity: "RARE" },
+  { id: "SW-ENG", "name": "Hermes Engine Thruster", type: "HARDWARE", cost: 800000, power: 18.2, rarity: "RARE" }
 ];
 
 function applyPermanentCritBonus(bonus) {
     // Verifica se o item já foi obtido para evitar duplicação de bônus e status
-    if (!playerInventory.find(i => i.id === 'RD-KATANA')) {
+    if (!playerInventory.find(i => i.id === 'RD-KATANA' && i.rarity === 'ULTIMATE')) {
         window.playerCritChance += bonus;
-        playerInventory.push({ id: 'RD-KATANA', name: "Red Dragon Katana", type: "ULTIMATE", power: 30 });
+        playerInventory.push({ id: 'RD-KATANA', name: "Red Dragon Katana", type: "ULTIMATE", rarity: "ULTIMATE", power: 30 });
         window.playerPowerBoost += 30; // Bônus massivo de poder
         addSecurityLog("PERMANENT_UPGRADE: Critical probability synchronized.", "log-warn");
         updateNeuralLink();
@@ -511,6 +574,10 @@ function updateXP() {
 
   if (fill) fill.style.width = pct + '%';
   if (lv) lv.innerText = newLevel;
+
+  // Atualiza exibição de Woolongs no HUD
+  const woolongsEl = document.getElementById('hud-woolongs');
+  if (woolongsEl) woolongsEl.innerText = playerWoolongs.toLocaleString();
 
   updateHPHUD();
   
@@ -576,6 +643,7 @@ async function initiateBossDuel(bossId) {
     
     let targetLevel = bossId === '90' ? 90 : (bossId === 'vicious' ? 120 : 74);
     let bossName = bossId === '90' ? "FATAL SCYTHE" : (bossId === 'vicious' ? "VICIOUS" : "GLEAM EYES");
+    let reward = bossId === '90' ? 150000000 : (bossId === 'vicious' ? 300000000 : 50000000);
 
     playerSP -= 30;
     currentCombatState = {
@@ -583,6 +651,7 @@ async function initiateBossDuel(bossId) {
         bossHp: 10,
         playerSync: 100,
         baseChance: Math.min(99.5, (totalPower / targetLevel) * 100),
+        reward: reward,
         bossId: bossId,
         bossName: bossName
     };
@@ -700,7 +769,8 @@ function processCombatTurn(action) {
 async function finishCombat() {
     // O Sync Rate agora atua como um multiplicador direto na chance de vitória.
     // Se você estiver com 150% de Sync, sua chance base aumenta em 1.5x.
-    const syncMultiplier = currentCombatState.playerSync / 100;
+    playerSyncRate = currentCombatState.playerSync; // Sincroniza o estado global
+    const syncMultiplier = playerSyncRate / 100;
     const finalChance = currentCombatState.baseChance * syncMultiplier;
     const win = currentCombatState.bossHp <= 0 || (Math.random() * 100 < finalChance);
     
@@ -711,11 +781,33 @@ async function finishCombat() {
         
         await new Promise(r => setTimeout(r, 800)); // Espera a animação de morte
 
-        saoNotify(`VITÓRIA! ${currentCombatState.bossName} foi neutralizado.`, "var(--gold)");
+        const reward = currentCombatState.reward;
+        playerWoolongs += reward;
+        
+        // Simula o cálculo de loot do backend para o frontend
+        const roll = Math.random() * 100;
+        let rarity = roll > 90 ? "LEGENDARY" : roll > 70 ? "RARE" : "COMMON";
+        let lootName = rarity === "LEGENDARY" ? "Dark Repulser Core" : rarity === "RARE" ? "Woolong Bundle" : "Scrap Metal";
+        const summary = `Loot: ${rarity}: [${lootName}]`;
+
+        saoNotify(`VITÓRIA! ${currentCombatState.bossName} neutralizado. +${reward.toLocaleString()} ₩`, "var(--gold)");
         
         // Atualiza o estado visual do card no mural de recompensas
         const questKey = currentCombatState.bossId === '74' ? 'boss_74' : 'boss_' + currentCombatState.bossId;
         completeQuest(questKey);
+
+        // Parse the loot string from the backend summary
+        const lootMatch = summary.match(/Loot: (COMMON|RARE|LEGENDARY|MYTHIC|ULTIMATE): \[(.*?)\]/);
+        if (lootMatch) {
+            const rarity = lootMatch[1];
+            const itemName = lootMatch[2];
+            playerInventory.push({ id: "LOOT-" + Date.now(), name: itemName, type: "LOOT", rarity: rarity, power: 0 });
+            saoNotify(`NOVO LOOT: ${itemName} (${rarity})`, rarityColors[rarity]);
+        }
+        
+        // Desgaste neural pós-combate (Fomenta o uso do comando 'rest' ou 'meditate')
+        playerSyncRate = Math.max(0, playerSyncRate - 20);
+        if (playerSyncRate < 30) document.body.classList.add('neural-fatigue-active');
 
         const rewardEl = document.getElementById('boss-reward-' + currentCombatState.bossId);
         if (rewardEl) {
@@ -724,7 +816,7 @@ async function finishCombat() {
         }
 
         completeQuest(currentCombatState.bossId === '74' ? 'boss_74' : 'boss_' + currentCombatState.bossId);
-        if (currentCombatState.bossId === 'vicious') applyPermanentCritBonus(10);
+        if (currentCombatState.bossId === 'vicious') applyPermanentCritBonus(10); // This will add the Red Dragon Katana
     } else {
         triggerWarning();
         
@@ -746,14 +838,21 @@ function buyMarketItem(itemId) {
   const item = marketCatalog.find(i => i.id === itemId);
   if (!item) return;
 
+  if (playerWoolongs < item.cost) {
+    saoNotify("SALDO INSUFICIENTE EM WOOLONGS", "var(--red)");
+    return;
+  }
+
   saoAnnouncement(`PURCHASING: ${item.name}...`);
   
   setTimeout(() => {
     saoNotify(`ITEM ACQUIRED: ${item.name}`, "var(--teal)");
-    playerInventory.push(item);
+    playerInventory.push({ ...item, rarity: item.rarity || "RARE" }); // Ensure rarity is added
+    playerWoolongs -= item.cost;
     window.playerPowerBoost = (window.playerPowerBoost || 0) + item.power;
     updateNeuralLink();
     addSecurityLog(`Market: Item ${item.id} registered to player.`, "log-warn");
+    renderHUDInventory();
     renderInventory();
   }, 1500);
 }
@@ -764,6 +863,20 @@ function toggleInventory() {
   if (modal.classList.contains('active')) renderInventory();
 }
 
+/**
+ * Renderiza ícones compactos no HUD lateral para representar o inventário atual.
+ */
+function renderHUDInventory() {
+    const hudInv = document.getElementById('hud-inventory-icons');
+    if (!hudInv) return;
+    
+    hudInv.innerHTML = playerInventory.map(item => {
+        let icon = item.type === 'HARDWARE' ? 'fa-microchip' : 
+                   item.type === 'COMBAT' ? 'fa-sword' : 'fa-shield-halved';
+        return `<i class="fas ${icon}" title="${item.name} (${item.rarity})" style="color:${rarityColors[item.rarity] || 'var(--teal)'}; font-size: 0.7rem; margin-right: 5px;"></i>`;
+    }).join('');
+}
+
 function renderInventory() {
   const grid = document.getElementById('inventory-grid');
   if (!grid) return;
@@ -772,9 +885,10 @@ function renderInventory() {
     return;
   }
   grid.innerHTML = playerInventory.map(item => `
-    <div class="item-card" style="border-color:var(--teal)">
-      <div class="item-name">${item.name}</div>
+    <div class="item-card" style="border-color:${rarityColors[item.rarity] || 'var(--muted)'}">
+      <div class="item-name" style="color:${rarityColors[item.rarity] || 'var(--cream)'}">${item.name}</div>
       <div class="item-price">POWER: +${item.power}</div>
+      <div class="item-rarity" style="color:${rarityColors[item.rarity] || 'var(--muted)'}">${item.rarity}</div>
     </div>
   `).join('');
 }
@@ -1127,6 +1241,50 @@ const playItemSound = () => {
   osc.start(); osc.stop(now + 0.05);
 };
 
+// Som de limpeza de dados (Digital Wipe)
+const playClearSound = () => {
+  if (!audioCtx) setupAudioNodes();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(1200, now);
+  osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
+  g.gain.setValueAtTime(0.1, now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start(); osc.stop(now + 0.4);
+};
+
+// Engine de Som de Estática (Old TV Static)
+const playStaticSound = () => {
+  if (!audioCtx) setupAudioNodes();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const bufferSize = 2 * audioCtx.sampleRate;
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+
+  const whiteNoise = audioCtx.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  whiteNoise.loop = true;
+
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.2); // Fade in rápido
+
+  whiteNoise.connect(g);
+  g.connect(audioCtx.destination);
+  whiteNoise.start();
+  
+  return { source: whiteNoise, gain: g };
+};
+
 // ─── SAO OVERLAY EFFECTS ───
 function saoAnnouncement(text) {
   const overlay = document.getElementById('sao-announcement-overlay');
@@ -1303,6 +1461,12 @@ const termHistory = document.getElementById('terminal-history');
 // Focar no terminal ao clicar na área dele (substitui o autofocus que causava o pulo da página)
 document.querySelector('.terminal')?.addEventListener('click', () => {
   termInput.focus();
+  termInput.closest('.terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+// Garante que ao ganhar foco (via Tab ou clique), o terminal seja centralizado
+termInput?.addEventListener('focus', () => {
+  termInput.closest('.terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
 const appendLine = (text, color = 'var(--cream)', isHtml = false) => {
@@ -1323,6 +1487,27 @@ const appendLine = (text, color = 'var(--cream)', isHtml = false) => {
 };
 
 /**
+ * Executa a lógica de download de arquivos com barra de progresso.
+ */
+function executeDownloadLogic(fileName) {
+  appendLine(`Iniciando transferência de '${fileName}'...`, "var(--gold)");
+  const progId = 'prog-' + Date.now();
+  appendLine(`<div class="t-progress-wrap"><div id="${progId}" class="t-progress-fill"></div></div> <span id="${progId}-val">0%</span>`, "var(--teal)", true);
+  let p = 0;
+  const int = setInterval(() => {
+    p += Math.random() * 15;
+    if (p >= 100) {
+      p = 100;
+      clearInterval(int);
+      appendLine("Download concluído. Integridade verificada.", "var(--teal)");
+      completeQuest('hero'); // Exemplo de trigger de quest
+    }
+    document.getElementById(progId).style.width = p + '%';
+    document.getElementById(progId + '-val').innerText = Math.floor(p) + '%';
+  }, 150);
+}
+
+/**
  * Efeito de descriptografia de texto para o terminal.
  */
 const decryptEffect = (targetText, color = 'var(--cream)') => {
@@ -1334,10 +1519,10 @@ const decryptEffect = (targetText, color = 'var(--cream)') => {
   termHistory.appendChild(line);
   const span = line.querySelector('span:last-child');
   
-  const interval = setInterval(() => {
+  const interval = setInterval(() => { // Removed `const` from `interval` to avoid redeclaration
     span.innerText = targetText.split("").map((char, index) => {
       if(index < iteration) return targetText[index];
-      return chars[Math.floor(Math.random() * chars.length)];
+      return chars[Math.floor(Math.random() * chars.length)]; // Removed `const` from `chars`
     }).join("");
     if(iteration >= targetText.length) clearInterval(interval);
     iteration += 1 / 3;
@@ -1345,103 +1530,7 @@ const decryptEffect = (targetText, color = 'var(--cream)') => {
 };
 
 // Engine de comandos otimizada
-const commands = {
-  ls: "projetos/  certificados/  curriculo.pdf  contato.txt",
-  about: "Pedro Augusto Floriano, 18 anos, Sorocaba/SP. Técnico em Eletrônica e Cibersegurança focado em proteção de sistemas e hardware.",
-  skills: "Cyber: Pentesting (Nmap, Burp), SOC, Networking (TCP/IP), Linux (Hardening). | Eletrônica: MCU, PCB Design, Automação.",
-  contact: "Email: florianop2008@gmail.com | LinkedIn: linkedin.com/in/pedro-augusto-floriano",
-  social: "Ações: Arrecadação ETEC, Apoio RS (Enchentes), Doador de Sangue frequente.",
-  badges: "Certificações: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.",
-  neofetch: "Exibe informações técnicas do sistema e do usuário.",
-  clear: () => { termHistory.innerHTML = ''; },
-  weather: "Consulta dados atmosféricos em tempo real via satélite.",
-  scan: () => {
-    if (document.body.classList.contains('emergency-mode')) {
-        appendLine("Iniciando purga de sistema...", "var(--teal)");
-        setTimeout(resolveEmergency, 2000);
-    } else {
-        const scanLine = document.getElementById('scan-line');
-        if(scanLine) scanLine.classList.add('scanning');
-        appendLine("Iniciando Deep Scan...", "var(--teal)");
-        setTimeout(() => {
-            if(scanLine) scanLine.classList.remove('scanning');
-            appendLine("Varredura concluída. 0 vulnerabilidades encontradas.", "var(--teal)");
-            addSecurityLog("System Integrity Check: PASSED", "log-warn");
-        }, 2000);
-    }
-  },
-  "download cv": "Inicia transferência segura do currículo em PDF.",
-  audit: () => {
-    appendLine("Requisitando SecurityAuditService via API...", "var(--gold)");
-    setTimeout(() => {
-        decryptEffect("[REPORT-2025] STATUS: STABLE | COMPLIANCE: 100%", "var(--teal)");
-        addSecurityLog("Audit report generated by PAF-OS", "log-warn");
-    }, 1200);
-  },
-  cat: "Lê o conteúdo de um arquivo (Ex: cat intel_report.txt).",
-  top: "Monitora os processos ativos do Bebop-OS.",
-  "link-start": "Inicializa mergulho neural no servidor Aincrad.",
-  "system-call": "Executa comando de autoridade no Cardinal System.",
-  inventory: "Exibe a lista de equipamentos e itens de sistema.",
-  status: () => {
-    appendLine("FETCHING DATA FROM CARDINAL SYSTEM...", "var(--gold)");
-    
-    // Cria elemento para a animação de glitch
-    const glitchDiv = document.createElement('div');
-    glitchDiv.className = 't-line';
-    glitchDiv.innerHTML = `<span class="t-cmd">></span> <span id="status-load" style="color:var(--teal)"></span>`;
-    termHistory.appendChild(glitchDiv);
-    const loadSpan = glitchDiv.querySelector('#status-load');
-    const glitchChars = "X01$!/%░▒▓█";
-    let ticks = 0;
-
-    // Loop da animação de carregamento/glitch
-    const interval = setInterval(() => {
-      let noise = "";
-      for(let i=0; i<15; i++) noise += glitchChars[Math.floor(Math.random() * glitchChars.length)];
-      loadSpan.innerText = "DECRYPTING_MISSIONS: " + noise;
-      ticks++;
-      
-      const body = termInput.closest('.terminal-body');
-      body.scrollTop = body.scrollHeight;
-
-      if(ticks > 25) {
-        clearInterval(interval);
-        glitchDiv.remove();
-        
-        appendLine("--- CARDINAL_MISSION_STATUS ---", "var(--gold)");
-        const qEntries = Object.values(quests);
-        const total = qEntries.length;
-        const completed = qEntries.filter(q => q.completed).length;
-        const pct = Math.floor((completed / total) * 100);
-
-        const barLen = 15;
-        const filled = Math.round((completed / total) * barLen);
-        const bar = "█".repeat(filled) + "░".repeat(barLen - filled);
-
-        appendLine(`GLOBAL_SYNC: [${bar}] ${pct}%`, "var(--teal)");
-        const currentTotalXP = Object.values(quests).filter(q => q.completed).reduce((sum, q) => sum + (q.xp || 100), 0);
-        appendLine(`TOTAL_EXPERIENCE: ${currentTotalXP} PTS`, "var(--gold)");
-        appendLine("--------------------------------", "var(--muted)");
-        qEntries.forEach(q => {
-          const mark = q.completed ? "[OK]" : "[..]";
-          const color = q.completed ? "var(--teal)" : "var(--muted)";
-          appendLine(`${mark} ${q.title}`, color);
-        });
-      }
-    }, 40);
-  },
-  stacia: "Alterna privilégios de visualização de deidade (Admin Mode).",
-  ssh: "Estabelece conexão com servidores remotos (Ex: ssh root@bebop).",
-  db: "Acesso ao banco de dados NoSQL (Ex: db projects).",
-  whois: "Executa rastreio de pacotes e geolocalização de IP.",
-  hack: "Ativa o protocolo de override e alerta do sistema.",
-  matrix: "Ativa o modo visual de chuva digital (Digital Rain).",
-  exit: "Encerra sessões ativas ou processos em execução.",
-  "sudo self-destruct": "Protocolo de emergência final. CUIDADO."
-};
-
-// Texto do Neofetch (Mantido fora do objeto para não poluir o help dinâmico com strings gigantes)
+// Global data (not part of commands object)
 const neofetchData = `<span>PAF-OS v1.0.0</span><br>
 <span>-----------</span><br>
 <span>OS: Linux / Bebop-Kernel</span><br>
@@ -1453,7 +1542,331 @@ const neofetchData = `<span>PAF-OS v1.0.0</span><br>
 const virtualFiles = {
   "intel_report.txt": "CLASSIFIED: Alvo identificado em Sorocaba, SP. Nível de ameaça: Engenheiro de Software Sênior.",
   "contato.txt": "Email: florianop2008@gmail.com\nLinkedIn: pedro-augusto-floriano\nStatus: Disponível para contratação.",
-  "curriculo.pdf": "[BINARY_DATA] Use o comando 'download cv' para descriptografar."
+  "curriculo.pdf": "[BINARY_DATA] Use o comando 'download cv' para descriptografar.",
+  "manifesto.log": "A tecnologia não é o fim, mas o meio. Bebop-OS v1.0 é a interface entre o hardware e a alma.",
+  "secret_floor.env": "DEBUG_DATA: Floor 100 access requires 'ULTIMATE' rarity gear. Good luck, Player One."
+};
+
+const commands = {
+  // Informational commands (now functions)
+  ls: () => appendLine("projetos/  certificados/  curriculo.pdf  intel_report.txt", "var(--cyan)"),
+  about: () => appendLine("Pedro Augusto Floriano, 18 anos, Sorocaba/SP. Técnico em Eletrônica e Cibersegurança focado em proteção de sistemas e hardware.", "var(--cream)"),
+  skills: () => appendLine("Cyber: Pentesting (Nmap, Burp), SOC, Networking (TCP/IP), Linux (Hardening). | Eletrônica: MCU, PCB Design, Automação.", "var(--cream)"),
+  contact: () => appendLine("Email: florianop2008@gmail.com | LinkedIn: pedro-augusto-floriano\nStatus: Disponível para contratação.", "var(--cream)"),
+  social: () => appendLine("Ações: Arrecadação ETEC, Apoio RS (Enchentes), Doador de Sangue frequente.", "var(--cream)"),
+  badges: () => appendLine("Certificações: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.", "var(--cream)"),
+  neofetch: () => appendLine(neofetchData, 'var(--gold)', true),
+
+  // Action commands
+  clear: () => { 
+    termHistory.innerHTML = ''; 
+    playClearSound();
+    termInput.closest('.terminal')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  },
+  weather: () => {
+    const conditions = ["Stormy (High Latency)", "Clear Skies", "Acid Rain", "Neural Fog"];
+    const temp = (Math.random() * 45).toFixed(1);
+    appendLine(`LOCAL_ATMOSPHERE: ${conditions[Math.floor(Math.random() * conditions.length)]} | TEMP: ${temp}°C`, "var(--cyan)");
+  },
+  history: () => {
+    cmdHistory.forEach((cmd, i) => appendLine(`${i + 1}  ${cmd}`, "var(--muted)"));
+  },
+  shop: (args) => { // Consolidated shop command
+    if (!args[0]) {
+      appendLine("--- BLACK_MARKET_CATALOG ---", "var(--gold)");
+      marketCatalog.forEach(item => {
+        appendLine(`${item.id}: ${item.name} | PWR +${item.power} | ${item.cost.toLocaleString()} ₩`, "var(--cream)");
+      });
+      appendLine("Use 'shop [ID]' para adquirir equipamento.", "var(--muted)");
+    } else {
+      const itemId = args[0].toUpperCase();
+      buyMarketItem(itemId);
+    }
+  },
+  daily: () => {
+    const bonus = 2500;
+    playerWoolongs += bonus;
+    updateXP();
+    appendLine(`DAILY_REWARD: +${bonus.toLocaleString()} ₩ creditados via Bebop-Bank.`, "var(--gold)");
+    addSecurityLog("Financial Transaction: Daily stipend received.", "log-warn");
+  },
+  meditate: () => {
+    playerSP = Math.min(100, playerSP + 20);
+    appendLine("Iniciando calibração de ondas cerebrais...", "var(--gold)");
+    setTimeout(() => appendLine("CARDINAL: Protocolo de meditação concluído. SP +20.", "var(--teal)"), 1000);
+  },
+  rest: () => {
+    playerSP = 100;
+    appendLine("Sincronização neural restaurada. Stamina: 100%", "var(--teal)");
+    updateHPHUD();
+  },
+  "download": (args) => {
+    if (args[0] === 'cv') {
+       executeDownloadLogic("curriculo_paf.pdf");
+    } else appendLine("Uso: download cv", "var(--muted)");
+  },
+  "scan-network": (args) => {
+    const targetIP = args[0];
+    if (!targetIP) {
+        appendLine("--- LOCAL_NETWORK_NODES ---", "var(--gold)");
+        networkDevices.forEach(d => {
+            appendLine(`IP: ${d.ip} | ID: ${d.name} | [${d.status}]`, "var(--cream)");
+        });
+        appendLine("Use 'scan-network [IP]' para tentar interagir.", "var(--muted)");
+        return;
+    }
+
+    const device = networkDevices.find(d => d.ip === targetIP);
+    if (!device) return appendLine(`Erro: IP ${targetIP} não encontrado na sub-rede atual.`, "var(--red)");
+
+    appendLine(`Interagindo com ${device.name}...`, "var(--gold)");
+    setTimeout(() => {
+        if (device.status === "VULNERABLE" || device.status === "SUSPICIOUS") {
+            if (device.reward > 0) {
+                playerWoolongs += device.reward;
+                appendLine(`SUCCESS: Bypass concluído. Extraído: ${device.reward} ₩`, "var(--teal)");
+                device.reward = 0; // Evita farm infinito
+                device.status = "CLEANED";
+                updateXP();
+            } else {
+                appendLine("INFO: Nenhum dado valioso restante neste nó.", "var(--muted)");
+            }
+        } else {
+            appendLine(`ACCESS_DENIED: Nó ${device.status}. Criptografia Cardinal impenetrável.`, "var(--red)");
+        }
+    }, 1500);
+  },
+  transfer: (args) => {
+    const amount = parseInt(args[0]);
+    const target = args[1] || "UNKNOWN_NODE";
+    if (isNaN(amount) || amount <= 0) return appendLine("Erro: Especifique um valor válido (Ex: transfer 500 BEBOP)", "var(--red)");
+    if (playerWoolongs < amount) return appendLine("Erro: Saldo insuficiente para transferência.", "var(--red)");
+
+    playerWoolongs -= amount;
+    updateXP();
+    appendLine(`Transferindo ${amount} ₩ para ${target.toUpperCase()}...`, "var(--gold)");
+    setTimeout(() => appendLine("Transação encriptada via Cardinal Protocol concluída.", "var(--teal)"), 1000);
+  },
+  "system-call": (args) => {
+    const sub = args[0];
+    if (sub === 'overload') {
+        document.body.classList.add('destruct-active');
+        setTimeout(() => document.body.classList.remove('destruct-active'), 2000);
+        appendLine("CARDINAL: Forçando sobrecarga de buffers neurais...", "var(--red)");
+    } else if (sub === 'purge') {
+        if (document.body.classList.contains('emergency-mode')) {
+            appendLine("Iniciando purga de sistema...", "var(--teal)");
+            setTimeout(resolveEmergency, 1000);
+        } else {
+            appendLine("Sistema já se encontra em estado nominal.", "var(--muted)");
+        }
+    } else {
+        appendLine("Uso: system-call [overload|purge]", "var(--gold)");
+    }
+  },
+  scan: () => {
+    const scanLine = document.getElementById('scan-line');
+    if(scanLine) scanLine.classList.add('scanning');
+    appendLine("Iniciando Deep Scan nas camadas de rede local...", "var(--teal)");
+    setTimeout(() => {
+        if(scanLine) scanLine.classList.remove('scanning');
+        appendLine("Varredura concluída. Integridade do Kernel: 100%.", "var(--teal)");
+        addSecurityLog("System Integrity Check: PASSED", "log-warn");
+    }, 2000);
+  },
+  help: () => {
+    const execs = Object.keys(commands).filter(k => typeof commands[k] === 'function').join(', ');
+    appendLine("COMANDOS DISPONÍVEIS: " + execs, "var(--gold)");
+    appendLine("DICA: Use 'shop' para ver o catálogo ou 'status' para sua progressão.", "var(--muted)");
+  },
+  status: () => {
+      appendLine("FETCHING DATA FROM CARDINAL SYSTEM...", "var(--gold)");
+      setTimeout(() => {
+        appendLine("--- NEURAL_LINK_PROFILE ---", "var(--gold)");
+        appendLine(`LVL: ${lastLevel} | SYNC: ${playerSyncRate}%`, "var(--teal)");
+        appendLine(`WOOLONGS: ${playerWoolongs.toLocaleString()} ₩`, "var(--gold)");
+        appendLine(`POWER_BOOST: +${window.playerPowerBoost}`, "var(--cyan)");
+        appendLine("--------------------------", "var(--muted)");
+      }, 500);
+  },
+  cat: (args) => {
+    const fileName = args[0]; // Correctly get filename from args
+    if (virtualFiles[fileName]) {
+        decryptEffect(virtualFiles[fileName]);
+        completeQuest('archivist');
+    } else {
+        appendLine(`Erro: Arquivo '${fileName}' não encontrado.`, "var(--red)");
+    }
+  },
+  missions: () => { // Renamed from status to missions for clarity
+        appendLine("--- CARDINAL_ACTIVE_MISSIONS ---", "var(--gold)");
+        const qEntries = Object.values(quests);
+        const total = qEntries.length;
+        const completed = qEntries.filter(q => q.completed).length;
+        
+        qEntries.forEach(q => {
+          const mark = q.completed ? "[OK]" : "[..]";
+          appendLine(`${mark} ${q.title}`, q.completed ? "var(--teal)" : "var(--muted)");
+        });
+  },
+  stacia: () => {
+    document.body.classList.toggle('stacia-mode');
+    const isStacia = document.body.classList.contains('stacia-mode');
+    appendLine(isStacia ? "Privilégios Administrativos 'STACIA' concedidos." : "Privilégios revogados.", "var(--gold)");
+    if(isStacia) {
+        completeQuest('stacia_mode');
+        playLevelUpSound();
+    }
+  },
+  // Other commands that were previously just strings or had simple logic
+  ssh: () => {
+    appendLine("Estabelecendo túnel SSH encriptado...", "var(--gold)");
+    setTimeout(() => {
+      termHistory.innerHTML = '';
+      appendLine("CONECTADO: root@bebop_vessel", "var(--teal)");
+      appendLine("Sistemas de propulsão: NOMINAL", "var(--cream)");
+      appendLine("Localização atual: Órbita de Marte", "var(--cream)");
+      appendLine("Digite 'exit' para retornar ao shell local.", "var(--muted)");
+    }, 1500);
+  },
+  db: (args) => {
+    const col = args[0];
+    if (!col) return appendLine("Uso: db [collection]", "var(--gold)");
+    mockDB.connect().then(() => mockDB.find(col)).then(res => {
+      appendLine(JSON.stringify(res, null, 2), "var(--cream)");
+    });
+  },
+  whois: () => {
+    appendLine("Rastreando origem da conexão...", "var(--gold)");
+    fetchIntelligence().then(data => {
+      if(data) {
+        appendLine(`IP: ${data.ip} | Org: ${data.org} | Loc: ${data.city}/${data.region}`, "var(--teal)");
+      } else {
+        appendLine("Falha ao obter dados de inteligência.", "var(--red)");
+      }
+    });
+  },
+  hack: () => {
+    document.body.classList.toggle('hacking-mode');
+    const isHacking = document.body.classList.contains('hacking-mode');
+    appendLine("SISTEMA_OVERRIDE: MODO " + (isHacking ? "ATIVADO" : "DESATIVADO"), "var(--red)");
+    toggleHackerAudio(document.body.classList.contains('hacking-mode'));
+  },
+  matrix: () => {
+    document.body.classList.toggle('hacking-mode'); // Matrix mode can also be a hacking mode
+    const isHacking = document.body.classList.contains('hacking-mode');
+    mCanvas.style.display = isHacking ? 'block' : 'none';
+    if(isHacking) {
+      initMatrix();
+      matrixInterval = setInterval(drawMatrix, 33);
+    } else {
+      clearInterval(matrixInterval);
+    }
+    appendLine("DIGITAL_RAIN: " + (isHacking ? "ATIVADO" : "DESATIVADO"), "var(--cyan)");
+  },
+  exit: () => {
+    termHistory.innerHTML = '';
+    appendLine("Conexão encerrada. Retornando ao host local...", "var(--gold)");
+  },
+  "sudo self-destruct": () => appendLine("PROTOCOL_INITIATED: System self-destruct sequence engaged. This action cannot be undone.", "var(--red)"),
+  "link-start": () => saoAnnouncement("LINK START: INICIANDO MERGULHO NEURAL"),
+  audit: () => {
+    appendLine("Requisitando SecurityAuditService via API...", "var(--gold)");
+    setTimeout(() => {
+        decryptEffect("[REPORT-2025] STATUS: STABLE | COMPLIANCE: 100%", "var(--teal)");
+        addSecurityLog("Audit report generated by PAF-OS", "log-warn");
+    }, 1200);
+  },
+  inventory: () => {
+    appendLine("--- NEURAL_STORAGE_INVENTORY ---", "var(--teal)");
+    if (playerInventory.length === 0) return appendLine("STORAGE_EMPTY: No items found.", "var(--muted)");
+    playerInventory.forEach(item => {
+        appendLine(`ID: ${item.id} | NAME: ${item.name}`, "var(--cream)");
+        appendLine(`  > TYPE: ${item.type} | STAT_BUFF: +${item.power} PWR`, "var(--muted)");
+    });
+  },
+  shutdown: () => {
+    appendLine("INICIANDO SEQUÊNCIA DE DESLIGAMENTO...", "var(--red)");
+    addSecurityLog("KERNEL_HALT: System shutdown initiated.", "log-crit");
+    
+    // Inicia som de estática (TV Antiga)
+    const tvStatic = playStaticSound();
+    
+    // Fade out do áudio se estiver tocando
+    if (typeof fadeVolume === 'function' && !lofiAudio.paused) {
+        fadeVolume(0, 2500);
+    }
+
+    setTimeout(() => {
+        saoAnnouncement("SYSTEM_OFFLINE");
+        document.body.classList.add('shutdown-active');
+        appendLine("Conexão perdida com o Cardinal System.", "var(--muted)");
+        
+        // Desliga a estática gradualmente após o fade visual
+        if (tvStatic) {
+            tvStatic.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3);
+            setTimeout(() => tvStatic.source.stop(), 3100);
+        }
+    }, 1200);
+  },
+  reboot: () => {
+    document.body.dataset.rebooting = "true";
+    commands.shutdown();
+    appendLine("REBOOT_SEQUENCE: Reinicializando kernel em 5s...", "var(--gold)");
+    setTimeout(() => {
+        location.reload();
+    }, 5000);
+  },
+  credits: () => {
+    termHistory.innerHTML = ''; // Limpa o terminal antes de iniciar os créditos
+    playClearSound();
+    const creditsData = [
+      "",
+      "--- BEBOP-OS SYSTEM CREDITS ---",
+      "VERSION: 1.0.0-STABLE",
+      "NODE: BEBOP-CENTRAL-V1",
+      "",
+      "DIRECTOR: PEDRO AUGUSTO FLORIANO",
+      "LEAD DEVELOPER: PEDRO AUGUSTO FLORIANO",
+      "SYSTEM ARCHITECT: CARDINAL AI ENGINE",
+      "NEURAL INTERFACE: SAO-LINK PROTOCOL",
+      "SOUNDSCAPE: COWBOY LO-FI SESSIONS",
+      "",
+      "ASSETS & INSPIRATIONS:",
+      "- SUNRISE STUDIO (COWBOY BEBOP)",
+      "- REKI KAWAHARA (SWORD ART ONLINE)",
+      "- CYBERPUNK AESTHETICS (GENRE)",
+      "- OPEN SOURCE COMMUNITY (TOOLS)",
+      "",
+      "TECHNOLOGIES USED:",
+      "- HTML5 / CSS3 / JAVASCRIPT",
+      "- JAVA 17 / SPRING BOOT",
+      "- MAVEN / GITHUB ACTIONS",
+      "",
+      "SPECIAL THANKS:",
+      "ETEC RUBENS DE FARIA E SOUZA",
+      "FAMILY, FRIENDS AND MENTORS",
+      "AND YOU, SPACE COWBOY.",
+      "",
+      "-------------------------",
+      "SEE YOU SPACE COWBOY...",
+      "-------------------------",
+      ""
+    ];
+
+    let lineIdx = 0;
+    appendLine("INICIANDO SEQUÊNCIA DE CRÉDITOS...", "var(--gold)");
+    
+    const scrollInterval = setInterval(() => {
+      if (lineIdx < creditsData.length) {
+        appendLine(creditsData[lineIdx], lineIdx % 2 === 0 ? "var(--gold)" : "var(--cream)");
+        lineIdx++;
+      } else {
+        clearInterval(scrollInterval);
+        addSecurityLog("Credits sequence completed.", "log-warn");
+      }
+    }, 500); // 500ms entre cada linha para um scroll suave
+  }
 };
 
 // ─── PERSISTENT TERMINAL HISTORY ───
@@ -1497,120 +1910,36 @@ termInput?.addEventListener('keydown', (e) => {
   }
 
   if (e.key === 'Enter') {
-    const val = termInput.value.toLowerCase().trim();
-    if (val !== "") {
-      cmdHistory.push(val);
-      localStorage.setItem('term_history', JSON.stringify(cmdHistory.slice(-20))); // Salva os últimos 20
-      historyIdx = -1;
+    const fullInput = termInput.value.trim();
+    const args = fullInput.split(' ');
+    const cmd = args.shift().toLowerCase();
+    
+    if (cmd !== "") {
+      cmdHistory.push(fullInput);
+      localStorage.setItem('term_history', JSON.stringify(cmdHistory.slice(-20)));
       
-      // Lógica de Missão: Ghost in the Shell
-      const uniqueCmds = new Set(cmdHistory);
+      // Progressão de Missão: Ghost in the Shell (5 comandos únicos)
+      const uniqueCmds = new Set(cmdHistory.map(h => h.split(' ')[0].toLowerCase()));
       if (uniqueCmds.size >= 5) completeQuest('terminal_pro');
 
-      // Achievement System para Comandos (Extrai o primeiro nome do comando)
-      const baseCmd = val.split(' ')[0];
-      if (quests[baseCmd]) completeQuest(baseCmd);
-    }
+      // Aciona completude de quest se o comando for um ID de quest (ex: ls, about)
+      if (quests[cmd]) completeQuest(cmd);
 
-    const line = document.createElement('div');
-    line.className = 't-line';
-    
-    // Nova lógica de processamento de comandos baseada em objeto
-    if (val === 'help') {
-      appendLine("Comandos disponíveis: " + Object.keys(commands).join(', '), "var(--gold)");
-    } else if (typeof commands[val] === 'function') {
-      commands[val]();
-    } else if (typeof commands[val] === 'string') {
-      appendLine(commands[val], val === 'ls' ? 'var(--cyan)' : 'var(--cream)');
-    } else if (val.startsWith('cat ')) {
-        completeQuest('archivist');
-        const fileName = val.split(' ')[1];
-        if (virtualFiles[fileName]) decryptEffect(virtualFiles[fileName]);
-        else appendLine(`Erro: Arquivo '${fileName}' não encontrado.`, "var(--red)");
-    } else if (val === 'neofetch') {
-        appendLine(neofetchData, 'var(--gold)', true);
-    } else if (val === 'download cv') {
-      appendLine("Iniciando transferência de 'curriculo_paf.pdf'...", "var(--gold)");
-      const progId = 'prog-' + Date.now();
-      appendLine(`<div class="t-progress-wrap"><div id="${progId}" class="t-progress-fill"></div></div> <span id="${progId}-val">0%</span>`, "var(--teal)", true);
-      let p = 0;
-      const int = setInterval(() => {
-        p += Math.random() * 15;
-        if (p >= 100) {
-          p = 100;
-          clearInterval(int);
-          appendLine("Transferência completa. Abrindo documento...", "var(--teal)");
-          window.open('curriculo.pdf', '_blank'); // Assume o arquivo existe
-        }
-        document.getElementById(progId).style.width = p + '%';
-        document.getElementById(progId + '-val').innerText = Math.floor(p) + '%';
-      }, 150);
-    } else if (val === 'ssh root@bebop') {
-      appendLine("Estabelecendo túnel SSH encriptado...", "var(--gold)");
-      setTimeout(() => {
-        termHistory.innerHTML = '';
-        appendLine("CONECTADO: root@bebop_vessel", "var(--teal)");
-        appendLine("Sistemas de propulsão: NOMINAL", "var(--cream)");
-        appendLine("Localização atual: Órbita de Marte", "var(--cream)");
-        appendLine("Digite 'exit' para retornar ao shell local.", "var(--muted)");
-      }, 1500);
-    } else if (val === 'exit') {
-      termHistory.innerHTML = '';
-      appendLine("Conexão encerrada. Retornando ao host local...", "var(--gold)");
-    } else if (val === 'stacia') {
-        document.body.classList.toggle('stacia-mode');
-        const isStacia = document.body.classList.contains('stacia-mode');
-        appendLine(isStacia ? "Privilégios Administrativos 'STACIA' concedidos." : "Privilégios revogados.", "var(--gold)");
-        if(isStacia) {
-            completeQuest('stacia_mode');
-            playLevelUpSound();
-        }
-    } else if (val.startsWith('db ')) {
-      const col = val.split(' ')[1];
-      mockDB.connect().then(() => mockDB.find(col)).then(res => {
-        appendLine(JSON.stringify(res, null, 2), "var(--cream)");
-      });
-    } else if (val === 'whois') {
-      appendLine("Rastreando origem da conexão...", "var(--gold)");
-      fetchIntelligence().then(data => {
-        if(data) {
-          appendLine(`IP: ${data.ip} | Org: ${data.org} | Loc: ${data.city}/${data.region}`, "var(--teal)");
-        }
-      });
-    } else if (val === 'audit' || val === 'hack' || val === 'matrix') {
-      if (val === 'hack' || val === 'matrix') {
-        document.body.classList.toggle('hacking-mode');
-        const isHacking = document.body.classList.contains('hacking-mode');
-        appendLine("SISTEMA_OVERRIDE: MODO " + (isHacking ? "ATIVADO" : "DESATIVADO"), "var(--red)");
-        toggleHackerAudio(document.body.classList.contains('hacking-mode'));
-        
-        if(val === 'matrix') {
-          mCanvas.style.display = isHacking ? 'block' : 'none';
-          if(isHacking) {
-            initMatrix();
-            matrixInterval = setInterval(drawMatrix, 33);
+      // Verifica se é um comando composto (ex: sudo self-destruct)
+      const fullCmdKey = args.length > 0 ? `${cmd} ${args.join(' ')}` : cmd;
+      const activeCmd = commands[fullCmdKey] || commands[cmd];
+
+      if (activeCmd) {
+          if (typeof activeCmd === 'function') {
+              activeCmd(args); 
           } else {
-            clearInterval(matrixInterval);
+              appendLine(activeCmd, "var(--cream)");
           }
-        }
+      } else {
+          appendLine(`Erro: Comando '${cmd}' não reconhecido.`, "var(--red)");
       }
-      decryptEffect("Nmap scan report for internal_network (192.168.1.1)...", "var(--teal)");
-      setTimeout(() => appendLine("PORT 80/TCP OPEN [HTTP]", "var(--gold)"), 500);
-      setTimeout(() => appendLine("PORT 22/TCP OPEN [SSH]", "var(--gold)"), 1000);
-      setTimeout(() => appendLine("Injetando scripts de bypass...", "var(--red)"), 1500);
-      setTimeout(() => {
-        appendLine("Relatório gerado: Nenhuma vulnerabilidade crítica encontrada.", "var(--teal)");
-      }, 3000);
-    } else if (val === 'neofetch') {
-      appendLine(neofetchData, 'var(--gold)', true);
-    } else if (commands[val]) {
-      appendLine(commands[val], val === 'ls' ? 'var(--cyan)' : 'var(--cream)');
-    } else if (val !== "") {
-      appendLine(`Erro: Comando '${val}' não reconhecido.`, "var(--red)");
     }
-    
-    termInput.value = '';
-    // Auto-scroll para o final
+    termInput.value = ''; // Clear input after command
     const body = termInput.closest('.terminal-body');
     body.scrollTop = body.scrollHeight;
   }
