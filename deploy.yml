@@ -1,13 +1,31 @@
-name: Deploy to GitHub Pages
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main # Este workflow será executado toda vez que houver um push para a branch 'main'
+      - main
 
 jobs:
+  # Novo Job para compilar o código Java
+  build-java:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Compilar com Maven
+        run: mvn clean compile
+
   deploy:
     runs-on: ubuntu-latest # O ambiente onde o job será executado
+    needs: build-java # O deploy só acontece se a compilação Java passar
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3 # Baixa o código do seu repositório
