@@ -1048,7 +1048,7 @@ nav a{
 
 /* ─── LOADING SCREEN ─── */
 #loader{
-  position:fixed;inset:0;background:var(--ink);z-index:9000;
+  position:fixed;inset:0;background:var(--ink);z-index:20000;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:1.5rem;
 }
@@ -1621,34 +1621,134 @@ footer{
 .reveal-r{opacity:0;transform:translateX(30px);transition:opacity .7s,transform .7s}
 .reveal-r.visible{opacity:1;transform:none}
 
-@media(max-width:900px){
-  .sobre-grid,.contato-grid{grid-template-columns:1fr;gap:2.5rem}
-  .skills-layout{grid-template-columns:1fr}
-  .proj-grid{grid-template-columns:1fr}
-  .hero-bg-gif{display:none}
-}
-@media(max-width:600px){
-  nav{padding:.9rem 1.2rem}
-  section{padding:4.5rem 1.2rem}
-  footer{padding:1.5rem 1.2rem}
-  .stats-row{grid-template-columns:1fr 1fr}
-.boss-card {
-    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(8, 8, 15, 0.9));
-    border: 2px solid var(--red);
-    padding: 3rem 1rem;
-    text-align: center;
-}
-.boss-title {
-    font-family: var(--ff-display);
-    font-size: 2.5rem;
-    color: var(--cream);
-    margin: 1rem 0;
-    text-shadow: 0 0 15px var(--red);
-}
-.boss-reward {
-    font-family: var(--ff-mono);
+/* ─── MEDIA QUERIES (Sempre no final para correta especificidade) ─── */
+@media (max-width: 850px) {
+  section { padding: 4rem 1.2rem !important; }
+  h2.sec-title { font-size: 2.2rem !important; margin-bottom: 2rem; }
+
+  .system-hud { display: none !important; }
+  .hero-bg-gif { display: none; }
+  .scroll-hint, .konami-hint { display: none; }
+
+  nav { 
+    background: none !important; 
+    border: none !important;
+    backdrop-filter: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    padding: 0 !important;
+    position: fixed; 
+    top: 0; 
+    right: 0;
+    z-index: 10000;
+    pointer-events: none; /* Não bloqueia cliques na tela */
+  }
+  .nav-logo, .nav-ep { display: none !important; }
+
+  .menu-toggle {
+    pointer-events: auto; /* Botão volta a ser clicável */
+    display: flex !important;
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(13, 13, 26, 0.95);
+    border: 1px solid var(--gold);
+    padding: 10px 15px;
+    font-size: 0.8rem;
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
     color: var(--gold);
-    font-size: 1.2rem;
+    font-family: var(--ff-mono);
+    z-index: 10001;
+  }
+
+  nav ul {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    width: 190px;
+    background: rgba(13, 13, 26, 0.99);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--gold);
+    border-left: 4px solid var(--gold);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+    
+    /* Estado Inicial (Fechado) */
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+    z-index: 10000;
+    pointer-events: auto;
+  }
+
+  nav.active ul {
+    max-height: 450px;
+    opacity: 1;
+    visibility: visible;
+    padding: 10px 0;
+  }
+
+  nav ul li a { 
+    display: block;
+    padding: 15px 20px;
+    font-size: 0.85rem;
+    color: var(--cream);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  
+  .timeline::before { left: 15px; }
+  .tl-item { padding-left: 35px; }
+  .tl-dot { left: 10px; }
+
+  .cert-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.8rem;
+  }
+  
+  .vault-window { width: 95%; }
+  .vault-content { grid-template-columns: 1fr; }
+  .cert-img-wrap { width: 80px; height: 80px; }
+  .cert-name { font-size: 0.65rem; }
+
+  footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  footer { flex-direction: column; text-align: center; gap: 1rem; }
+
+  /* Move o Player LOFI para o canto extremo para não tampar a visão */
+  .lofi-player-container {
+    right: 1rem !important;
+    bottom: 1rem !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .lofi-player-container:hover { height: 180px !important; }
+  .lofi-control { width: 40px !important; height: 40px !important; font-size: 0.8rem !important; }
 }
-  .hero-left{max-width:100%}
+
+@media (max-width: 480px) {
+  .glitch-name { font-size: 2.4rem; }
+  .glitch-name { font-size: 2.2rem !important; }
+  .hero-subtitle { font-size: 0.7rem !important; }
+  .stats-row { grid-template-columns: 1fr; }
+  .cert-grid { grid-template-columns: 1fr !important; }
+  .inner { padding: 0 1rem; }
+  .inner { padding: 0; }
+  
+  .boss-card {
+    padding: 2rem 1rem;
+  }
+  .boss-title { font-size: 2rem; }
 }
