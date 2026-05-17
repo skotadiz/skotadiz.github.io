@@ -291,7 +291,6 @@ const skillsData = [
   { name: "Machine Learning (ML)", url: "https://www.credly.com/skills/machine-learning" },
   { name: "Natural Language Processing (NLP)", url: "https://www.credly.com/skills/natural-language-processing" },
   { name: "IBM Watson Knowledge Studio (WKS)", url: "https://www.credly.com/skills/watson-studio" },
- 
 ];
 
 /**
@@ -386,13 +385,25 @@ function registerNewSkill(name, url) {
 
 // ─── QUEST SYSTEM LOGIC ───
 let quests = JSON.parse(localStorage.getItem('achievements_paf') || JSON.stringify({
-  hero: { title: "Início da Jornada", desc: "Acesse o sistema Bebop-OS", completed: false, icon: "fa-rocket" },
-  boss_90: { title: "Reaper Defeated", desc: "Vença o Fatal Scythe no andar 90", completed: false, icon: "fa-ghost" },
-  syndicate_end: { title: "The Real Folk Blues", desc: "Elimine o líder do sindicato", completed: false, icon: "fa-cross" },
-  market_master: { title: "Whale", desc: "Compre todos os itens do mercado", completed: false, icon: "fa-shopping-cart" },
-  terminal_pro: { title: "Ghost in the Shell", desc: "Use 5 comandos diferentes no terminal", completed: false, icon: "fa-code" },
-  archivist: { title: "Data Miner", desc: "Use 'cat' em um arquivo secreto", completed: false, icon: "fa-file-code" },
-  wanted: { title: "Bounty Hunter", desc: "Gere um cartaz de procurado", completed: false, icon: "fa-user-secret" }
+  hero: { title: "Início da Jornada", desc: "Acesse o sistema Bebop-OS", completed: false, icon: "fa-rocket", xp: 100 },
+  sobre: { title: "Dossiê Pessoal", desc: "Leia o perfil do tripulante", completed: false, icon: "fa-user-ninja", xp: 150 },
+  habilidades: { title: "Arsenal Técnico", desc: "Analise a árvore de skills", completed: false, icon: "fa-bolt", xp: 150 },
+  certificacoes: { title: "Bounty Board", desc: "Explore o quadro de recompensas", completed: false, icon: "fa-scroll", xp: 150 },
+  experiencia: { title: "Linha do Tempo", desc: "Sincronize com o passado", completed: false, icon: "fa-hourglass-half", xp: 150 },
+  projetos: { title: "Arquiteto de Dados", desc: "Inspecione os artefatos", completed: false, icon: "fa-microchip", xp: 200 },
+  social: { title: "Impacto Local", desc: "Veja as ações sociais", completed: false, icon: "fa-heart", xp: 150 },
+  conquistas: { title: "Completionist", desc: "Acesse a galeria de troféus", completed: false, icon: "fa-trophy", xp: 100 },
+  boss_74: { title: "Gleam Eyes", desc: "Vença o Boss do 74º andar", completed: false, icon: "fa-sword", xp: 500 },
+  boss_90: { title: "Reaper Defeated", desc: "Vença o Fatal Scythe no andar 90", completed: false, icon: "fa-ghost", xp: 1200 },
+  boss_vicious: { title: "The Real Folk Blues", desc: "Elimine o líder do sindicato", completed: false, icon: "fa-cross", xp: 3000 },
+  market_master: { title: "Whale", desc: "Compre todos os itens do mercado", completed: false, icon: "fa-shopping-cart", xp: 600 },
+  terminal_pro: { title: "Ghost in the Shell", desc: "Use 5 comandos diferentes no terminal", completed: false, icon: "fa-code", xp: 400 },
+  archivist: { title: "Data Miner", desc: "Use 'cat' em um arquivo secreto", completed: false, icon: "fa-file-code", xp: 250 },
+  wanted: { title: "Bounty Hunter", desc: "Gere um cartaz de procurado", completed: false, icon: "fa-user-secret", xp: 200 },
+  stacia_mode: { title: "God Mode", desc: "Ative privilégios de Stacia", completed: false, icon: "fa-crown", xp: 500 },
+  konami_master: { title: "Retro Hacker", desc: "Código Konami detectado", completed: false, icon: "fa-gamepad", xp: 300 },
+  hangar_engineer: { title: "Shipwright", desc: "Inspecionou a Swordfish II", completed: false, icon: "fa-rocket", xp: 200 },
+  audio_sync: { title: "Neural Harmony", desc: "Ajustou a frequência lofi", completed: false, icon: "fa-music", xp: 150 },
 }));
 
 // Inicialização de atributos baseada no progresso salvo
@@ -448,80 +459,6 @@ const marketCatalog = [
   { id: "SW-ENG", "name": "Hermes Engine", type: "HARDWARE", cost: 800000, power: 18.2 }
 ];
 
-/**
- * Lógica de combate que integra o "Nível" do usuário com o Boss.
- * Demonstra o uso de promessas e simulação de latência de rede.
- */
-async function initiateBossDuel(bossId) {
-  const lv = parseInt(document.getElementById('sao-lv-val').innerText) || 1;
-  const totalPower = lv + (window.playerPowerBoost || 0);
-  
-  let targetLevel = 74;
-  let questId = 'certificacoes';
-
-  if (bossId === '90') {
-    targetLevel = 90;
-    questId = 'boss_90';
-  } else if (bossId === 'vicious') {
-    targetLevel = 120; // Muito acima do nível máximo base
-    questId = 'syndicate_end';
-  }
-
-  const chance = Math.min(99.5, (totalPower / targetLevel) * 100).toFixed(1);
-  
-  if (totalPower < targetLevel * 0.6) {
-    triggerWarning();
-    saoNotify(`POWER TOO LOW: ${totalPower.toFixed(1)}/${targetLevel}. Upgrade required!`, "var(--red)");
-    return;
-  }
-  
-  // Efeito Visual de "Link Start"
-  saoAnnouncement("LINK START: INICIANDO DUELO NEURAL...");
-  document.body.classList.add('gate-active');
-  
-  // Simula o processamento do BountyHunterService.java
-  setTimeout(() => {
-    document.body.classList.remove('gate-active');
-    
-    // Lógica de Chance Crítica: Se o roll for menor ou igual à chance, é um Critical Hit
-    const critRoll = Math.random() * 100;
-    const isCrit = critRoll <= (window.playerCritChance || 5);
-
-    // Se for crítico, a vitória é garantida. Caso contrário, segue a probabilidade normal.
-    const success = isCrit || (Math.random() * 100) <= chance;
-    
-    if (success) {
-      if (isCrit) saoNotify("CRITICAL HIT! Neural defense bypassed.", "var(--teal)");
-      let loot = (totalPower > 50) ? "LEGENDARY: [Elucidator Core]" : "RARE: [Woolong Cache]";
-
-      // Drop Especial do Vicious para progressão permanente
-      if (bossId === 'vicious') {
-          loot = "ULTIMATE: [Red Dragon Katana]";
-          applyPermanentCritBonus(10);
-      }
-
-      saoNotify(`BOSS DEFEATED! Loot: ${loot}`, "var(--gold)");
-      
-      // Feedback visual de dano no Boss
-      const card = event.target.closest('.boss-card');
-      const hpSegments = card.querySelectorAll('.hp-segment');
-      hpSegments.forEach((seg, i) => {
-        setTimeout(() => seg.style.background = 'transparent', i * 200);
-      });
-
-      card.querySelector('.boss-reward').innerText = "STATUS: CLEARED";
-      completeQuest(bossId === '74' ? 'boss_74' : questId);
-      addSecurityLog("Target 'Gleam Eyes' eliminated. Hash verified.", "log-warn");
-    } else {
-      triggerWarning();
-      saoNotify("HP CRITICAL: LOGOUT FORÇADO PELO CARDINAL", "var(--red)");
-    }
-  }, 2500);
-}
-
-/**
- * Aplica bônus permanente de crítico ao derrotar chefes lendários.
- */
 function applyPermanentCritBonus(bonus) {
     // Verifica se o item já foi obtido para evitar duplicação de bônus e status
     if (!playerInventory.find(i => i.id === 'RD-KATANA')) {
@@ -786,6 +723,7 @@ async function finishCombat() {
             rewardEl.style.color = "var(--teal)";
         }
 
+        completeQuest(currentCombatState.bossId === '74' ? 'boss_74' : 'boss_' + currentCombatState.bossId);
         if (currentCombatState.bossId === 'vicious') applyPermanentCritBonus(10);
     } else {
         triggerWarning();
@@ -1285,6 +1223,7 @@ volSlider?.addEventListener('input', (e) => {
   if (curvedVolume > 0) lastVolume = curvedVolume;
   
   completeQuest('audio_sync');
+
   updateVolumeIcon(curvedVolume);
   updateAudioVisualizer();
   applyLofiFilter(curvedVolume);
@@ -1567,6 +1506,10 @@ termInput?.addEventListener('keydown', (e) => {
       // Lógica de Missão: Ghost in the Shell
       const uniqueCmds = new Set(cmdHistory);
       if (uniqueCmds.size >= 5) completeQuest('terminal_pro');
+
+      // Achievement System para Comandos (Extrai o primeiro nome do comando)
+      const baseCmd = val.split(' ')[0];
+      if (quests[baseCmd]) completeQuest(baseCmd);
     }
 
     const line = document.createElement('div');

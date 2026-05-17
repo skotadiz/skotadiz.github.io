@@ -58,6 +58,7 @@ body{
   transition:width .15s,height .15s,background .15s;
   mix-blend-mode:difference;
   will-change: left, top;
+
 }
 #cursor-ring{
   position:fixed;
@@ -423,21 +424,63 @@ body.emergency-mode .system-hud {
   }
   nav ul li:last-child a { border-bottom: none; }
 
+  /* Hide HUD on mobile to prevent blocking content */
+  .system-hud {
+    display: none !important; 
+  }
+
+  /* Navigation Mobile */
+  nav {
+    padding: 0.8rem 1.2rem;
+    flex-wrap: wrap;
+  }
+  .menu-toggle {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: 1px solid rgba(245, 166, 35, 0.4); /* Borda sutil dourada */
+    background: rgba(245, 166, 35, 0.05); /* Fundo levemente colorido */
+    color: var(--gold);
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    padding: 6px 12px;
+    text-shadow: 0 0 8px rgba(245, 166, 35, 0.5); /* Efeito neon */
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); /* Corte angular SAO style */
+    cursor: pointer;
+  }
+  nav ul {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    background: var(--ink);
+    margin-top: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(245, 166, 35, 0.2);
+  }
+  nav.active ul {
+    display: flex;
+  }
+  nav ul li { 
+    text-align: center; padding: 15px 0; 
+    border-bottom: 1px solid rgba(255,255,255,0.02); 
+  }
+  nav ul li a { color: var(--cream); font-size: 0.9rem; }
   .nav-ep, .nav-logo .dot { display: none; }
 
   /* Hero Adjustment */
   #hero {
-    padding-top: 6rem;
-    text-align: left;
+    padding-top: 8rem;
+    text-align: center;
     justify-content: center;
   }
-  .hero-left { max-width: 100%; align-items: flex-start; }
-  .glitch-name { font-size: 3rem; }
-  .glitch-name.sub-name { font-size: 2rem !important; }
-  .hero-tags { justify-content: flex-start; }
+  .hero-left { max-width: 100%; align-items: center; }
+  .glitch-name { font-size: 3.5rem; }
+  .hero-tags { justify-content: center; }
   .hero-ctas { flex-direction: column; width: 100%; }
   .btn-primary, .btn-ghost { width: 100%; justify-content: center; }
-  
+
   /* Grids to Single Column */
   .sobre-grid, .skills-layout, .proj-grid, .contato-grid, .social-grid, .cert-grid {
     grid-template-columns: 1fr !important;
@@ -475,12 +518,14 @@ body.emergency-mode .system-hud {
   .cert-name { font-size: 0.7rem; }
 
   .konami-hint, .scroll-hint { display: none; }
-}
+
 
 @media (max-width: 480px) {
   .cert-grid { grid-template-columns: 1fr; }
   .glitch-name { font-size: 2.8rem; }
 }
+}
+/* Fim do bloco 850px */
 
 /* Certification logic moved from HTML to CSS */
 .cert-grid {
@@ -751,7 +796,6 @@ body.stacia-mode .glitch-name { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8); 
   position: fixed; inset: 0; z-index: 9999;
   pointer-events: none; animation: link-start-flash 1s forwards;
 }
-
 /* ─── DYNAMIC COMBAT FEEDBACK ─── */
 body.boss-active {
   background: radial-gradient(circle, #1a0505 0%, #08080f 100%) !important;

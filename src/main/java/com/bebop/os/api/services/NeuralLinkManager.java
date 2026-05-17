@@ -20,7 +20,7 @@ public class NeuralLinkManager {
         double totalPower = calculatedLevel + itemBonus;
         
         PlayerStats stats = new PlayerStats(
-            calculatedLevel, 
+            calculatedLevel,
             totalPower,
             syncRate, 
             syncRate > 80 ? "BURST_LINK_READY" : "STABLE"

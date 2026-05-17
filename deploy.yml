@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
 jobs:
   # Novo Job para compilar o código Java
   build-java:
@@ -46,5 +45,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }} # Token de autenticação fornecido pelo GitHub
           publish_dir: . # O diretório que será publicado. '.' significa a raiz do seu repositório.
-          publish_branch: main # A branch para a qual o conteúdo será publicado. Para username.github.io, é a 'main'.
+          publish_branch: gh-pages # Recomendado usar gh-pages para evitar sobrescrever o código fonte
           # Se você tivesse um diretório de build (ex: 'dist'), usaria: publish_dir: ./dist

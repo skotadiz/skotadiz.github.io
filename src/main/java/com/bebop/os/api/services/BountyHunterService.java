@@ -27,7 +27,6 @@ public class BountyHunterService {
         createFloorBossBounty(90, "THE FATAL SCYTHE", 150000000);
         createSyndicateTarget("VICIOUS", 300000000, 99);
     }
-
     /**
      * Filtra alvos de alto nível (S-Rank) usando Streams.
      */
