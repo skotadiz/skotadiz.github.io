@@ -11,13 +11,48 @@ const THREAT_THRESHOLD = 85;
 window.playerPowerBoost = 0; // Inicializa o boost de poder global
 window.playerCritChance = 5; // Chance crítica inicial (%)
 window.playerMaxHP = 100; // HP máximo inicial
+window.skillPoints = 0; // Pontos para a Skill Tree
 let lastLevel = 1; // Rastreador de nível para eventos de Level Up
 let playerWoolongs = 0; // Saldo inicial de moedas
+let systemCorruption = 0; // Novo sistema de corrupção
+let equippedItems = { weaponLeft: null, weaponRight: null, shield: null, module: null };
 let playerSyncRate = 100; // Sincronização neural global
 let isBurstLinkActive = false;
+let isDualWielding = false;
 let duelDeflected = false;
 let playerSP = 100;
 let currentCombatState = null;
+
+// Ship Upgrade Constants
+const SHIP_UPGRADES = {
+  engine: { name: "Hermes Thrusters", cost: 100000, power: 15 },
+  weapons: { name: "Plasma Cannon Array", cost: 250000, power: 35 },
+  hull: { name: "Armor Plating", cost: 150000, power: 20 }
+};
+
+// Estados do Hacking Minigame
+let hackingGameState = { active: false, correctAnswer: -1, timer: null };
+
+// Banco de Arquivos do Vault (Estrutura Dinâmica)
+let vaultFiles = [
+  { id: "v1", name: "curriculo.pdf", icon: "fa-file-pdf", locked: false, action: "download" },
+  { id: "v2", name: "intel_report.txt", icon: "fa-file-alt", locked: false, action: "intel" },
+  { id: "v3", name: "syndicate_files.enc", icon: "fa-user-secret", locked: true, action: "secret" }
+];
+
+// Skill Tree Constellation Data
+const skillTreeData = {
+    "root": { name: "CORE_LINK", x: 50, y: 85, cost: 0, unlocked: true, effect: null, children: ["str_1", "end_1", "sync_1"] },
+    // Strength Path
+    "str_1": { name: "HEAVY_STRIKE", x: 30, y: 65, cost: 1, unlocked: false, effect: () => window.playerPowerBoost += 10, desc: "+10 Power Boost", children: ["str_2"] },
+    "str_2": { name: "CRIT_MASTERY", x: 20, y: 40, cost: 2, unlocked: false, effect: () => window.playerCritChance += 5, desc: "+5% Critical Chance", children: [] },
+    // Endurance Path
+    "end_1": { name: "NEURAL_ARMOR", x: 50, y: 55, cost: 1, unlocked: false, effect: () => window.playerMaxHP += 50, desc: "+50 Max HP", children: ["end_2"] },
+    "end_2": { name: "IMMORTAL_OBJ", x: 50, y: 25, cost: 3, unlocked: false, effect: () => window.playerMaxHP += 150, desc: "+150 Max HP (Divine)", children: [] },
+    // Sync Path
+    "sync_1": { name: "FAST_SYNC", x: 70, y: 65, cost: 1, unlocked: false, effect: () => {}, desc: "Reduz custo de SP em 10%", children: ["sync_2"] },
+    "sync_2": { name: "BURST_MASTERY", x: 80, y: 40, cost: 2, unlocked: false, effect: () => {}, desc: "Duração do Burst Link +5s", children: [] }
+};
 
 /* Configurações de Cooldown */
 let burstCooldownActive = false;
@@ -66,6 +101,19 @@ function resolveEmergency() {
   saoNotify("SYSTEM STATUS: SECURE");
 }
 
+function updateCorruption(amount) {
+  systemCorruption = Math.max(0, Math.min(100, systemCorruption + amount));
+  if (systemCorruption > 60) {
+    document.body.classList.add('corrupted-ui');
+    if (Math.random() > 0.9) addSecurityLog("DATA_CORRUPTION_DETECTED: Purge required.", "log-crit");
+  } else {
+    document.body.classList.remove('corrupted-ui');
+  }
+  const memEl = document.getElementById('hud-mem');
+  if (memEl) memEl.style.color = systemCorruption > 60 ? 'var(--red)' : '';
+}
+
+setInterval(() => { if(systemCorruption > 0) updateCorruption(-0.5); }, 5000);
 setInterval(monitorThreatLevel, 3000);
 
 // ─── CARDINAL AI INTERJECTIONS ───
@@ -533,6 +581,26 @@ function applyPermanentCritBonus(bonus) {
     }
 }
 
+function equipItem(itemId) {
+  const item = playerInventory.find(i => i.id === itemId);
+  if (!item) return;
+
+  const slotMap = { 'COMBAT': 'weapon', 'HARDWARE': 'module', 'SECURITY': 'module', 'ULTIMATE': 'weapon' };
+  const slot = slotMap[item.type] || 'module';
+
+  // Remove bônus do item antigo
+  if (equippedItems[slot]) window.playerPowerBoost -= equippedItems[slot].power;
+
+  equippedItems[slot] = item;
+  window.playerPowerBoost += item.power;
+
+  saoNotify(`EQUIPPED: ${item.name}`, "var(--teal)");
+  playItemSound();
+  renderInventory();
+  updateNeuralLink();
+  renderHUDInventory();
+}
+
 function updateNeuralLink() {
   const lv = parseInt(document.getElementById('sao-lv-val').innerText) || 1;
   const winChance = document.getElementById('win-chance');
@@ -615,6 +683,7 @@ function renderMarket() {
       <div class="item-price">${item.cost.toLocaleString()} ₩ | PWR +${item.power}</div>
       <button class="item-buy-btn" onclick="buyMarketItem('${item.id}')">BUY</button>
     </div>
+    <button class="item-buy-btn" style="width:100%" onclick="equipItem('${item.id}')">${equippedItems.weapon?.id === item.id || equippedItems.module?.id === item.id ? 'EQUIPPED' : 'EQUIP'}</button>
   `).join('');
 }
 
@@ -712,10 +781,21 @@ function processCombatTurn(action) {
 
     const roll = Math.random() * 100;
     let damage = 0;
+    let bossCounter = false;
     let comboGained = false;
+    
+    // Penalidade de Fadiga Neural: Se o Sync Rate estiver baixo, o dano é reduzido em 40%
+    const fatiguePenalty = playerSyncRate < 30 ? 0.6 : 1;
+    
+    // Heathcliff mechanic: Invulnerability
+    if (currentCombatState.bossId === '100' && currentCombatState.playerSync < 110 && action !== 'DEFEND') {
+       createFloatingText("IMMUNE", "var(--gold)");
+       return updateCombatUI();
+    }
 
     if (action === 'ATTACK') {
-        damage = roll > 30 ? 4 : 1;
+        damage = Math.floor((roll > 30 ? 4 : 1) * fatiguePenalty);
+        if (roll < 15) bossCounter = true;
         createFloatingText(`-${damage} HP`, "var(--teal)");
         if (damage >= 4) comboGained = true;
         currentCombatState.playerSync -= 8;
@@ -725,7 +805,7 @@ function processCombatTurn(action) {
         currentCombatState.playerSync += 15;
         currentCombatState.combo = 0; // Reset por postura defensiva
     } else if (action === 'SKILL') {
-        damage = roll > 60 ? 7 : 0;
+        damage = Math.floor((roll > 60 ? 7 : 0) * fatiguePenalty);
         if (damage > 0) createFloatingText("SKILL HIT!", "var(--gold)");
         if (damage >= 7) comboGained = true;
         currentCombatState.playerSync -= 20;
@@ -743,6 +823,13 @@ function processCombatTurn(action) {
         flash.className = 'execution-flash';
         document.body.appendChild(flash);
         setTimeout(() => flash.remove(), 1000);
+    }
+
+    if (bossCounter) {
+        currentCombatState.playerSync -= 15;
+        updateCorruption(10);
+        createFloatingText("COUNTER!", "var(--red)");
+        saoNotify("NEURAL_FEEDBACK: Oponente contra-atacou.", "var(--red)");
     }
 
     if (comboGained) {
@@ -808,6 +895,7 @@ async function finishCombat() {
         // Desgaste neural pós-combate (Fomenta o uso do comando 'rest' ou 'meditate')
         playerSyncRate = Math.max(0, playerSyncRate - 20);
         if (playerSyncRate < 30) document.body.classList.add('neural-fatigue-active');
+        else document.body.classList.remove('neural-fatigue-active');
 
         const rewardEl = document.getElementById('boss-reward-' + currentCombatState.bossId);
         if (rewardEl) {
@@ -827,6 +915,7 @@ async function finishCombat() {
         setTimeout(() => flash.remove(), 1200);
 
         saoNotify("DERROTA: Desconexão forçada pelo Cardinal.", "var(--red)");
+        updateCorruption(25);
     }
     document.getElementById('combat-interface').style.display = 'none';
     document.body.classList.remove('boss-active');
@@ -886,7 +975,7 @@ function renderInventory() {
   }
   grid.innerHTML = playerInventory.map(item => `
     <div class="item-card" style="border-color:${rarityColors[item.rarity] || 'var(--muted)'}">
-      <div class="item-name" style="color:${rarityColors[item.rarity] || 'var(--cream)'}">${item.name}</div>
+      <div class="item-name" style="color:${rarityColors[item.rarity] || 'var(--cream)'}" onclick="equipItem('${item.id}')">${item.name}</div>
       <div class="item-price">POWER: +${item.power}</div>
       <div class="item-rarity" style="color:${rarityColors[item.rarity] || 'var(--muted)'}">${item.rarity}</div>
     </div>
@@ -1016,7 +1105,6 @@ function updateNav() {
   navAs.forEach(a => {
     a.style.color = a.getAttribute('href') === `#${curr}` ? 'var(--gold)' : '';
   });
-  renderValidatedSkills();
   
   // Lógica de Quest Log (Notificação ao entrar em seção)
   if (curr && quests[curr]) {
@@ -1042,7 +1130,10 @@ window.addEventListener('scroll', () => {
     scrollTicking = true;
   }
 });
-window.addEventListener('load', updateNav);
+window.addEventListener('load', () => {
+    updateNav();
+    renderValidatedSkills(); // Chamado apenas uma vez no load por performance
+});
 
 // ─── KONAMI CODE EASTER EGG ───
 const KK=[38,38,40,40,37,39,37,39,66,65];
@@ -1543,8 +1634,10 @@ const virtualFiles = {
   "intel_report.txt": "CLASSIFIED: Alvo identificado em Sorocaba, SP. Nível de ameaça: Engenheiro de Software Sênior.",
   "contato.txt": "Email: florianop2008@gmail.com\nLinkedIn: pedro-augusto-floriano\nStatus: Disponível para contratação.",
   "curriculo.pdf": "[BINARY_DATA] Use o comando 'download cv' para descriptografar.",
+  "sys_diagnose.log": "AUDIT: Neural Link stable. Sub-processes 1024-4096 running in background.",
   "manifesto.log": "A tecnologia não é o fim, mas o meio. Bebop-OS v1.0 é a interface entre o hardware e a alma.",
-  "secret_floor.env": "DEBUG_DATA: Floor 100 access requires 'ULTIMATE' rarity gear. Good luck, Player One."
+  "secret_floor.env": "DEBUG_DATA: Floor 100 access requires 'ULTIMATE' rarity gear. Good luck, Player One.",
+  "syndicate_files.enc": "DADOS_CONFIDENCIAIS: 'The Real Folk Blues' detectado no setor de Sorocaba. Vicious está movendo fundos para o sindicato Red Dragon."
 };
 
 const commands = {
@@ -1556,6 +1649,52 @@ const commands = {
   social: () => appendLine("Ações: Arrecadação ETEC, Apoio RS (Enchentes), Doador de Sangue frequente.", "var(--cream)"),
   badges: () => appendLine("Certificações: Ethical Hacker, Network Technician, Cyber Threat Management, Network Support.", "var(--cream)"),
   neofetch: () => appendLine(neofetchData, 'var(--gold)', true),
+  whoami: () => {
+    const ip = document.getElementById('hud-ip')?.innerText || '127.0.0.1';
+    decryptEffect(`USER: Pedro | ADDR: ${ip} | RANK: S-CLASS | STATUS: SEARCHING_FOR_CONTRACTS`);
+  },
+  "hack-vault": () => {
+    if (hackingGameState.active) return;
+    const lockedFile = vaultFiles.find(f => f.locked);
+    if (!lockedFile) return appendLine("VAULT_STATUS: Todos os setores já foram descriptografados.", "var(--teal)");
+
+    appendLine("INICIALIZANDO BYPASS DE SEGURANÇA CARDINAL...", "var(--gold)");
+    hackingGameState.active = true;
+    
+    // Gerador de Puzzle Lógico (Sequência de Memória)
+    const types = ['arithmetic', 'geometric', 'fibonacci'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    let sequence = [], answer = 0;
+
+    if (type === 'arithmetic') {
+        const start = Math.floor(Math.random() * 10) + 1, step = Math.floor(Math.random() * 5) + 2;
+        sequence = [start, start + step, start + step * 2, start + step * 3];
+        answer = start + step * 4;
+    } else if (type === 'geometric') {
+        const start = Math.floor(Math.random() * 3) + 2, factor = 2;
+        sequence = [start, start * factor, start * factor * factor, start * factor * factor * factor];
+        answer = start * factor * factor * factor * factor;
+    } else {
+        sequence = [1, 1, 2, 3, 5, 8];
+        answer = 13;
+    }
+
+    hackingGameState.correctAnswer = answer;
+    
+    setTimeout(() => {
+        appendLine("CARDINAL_LOGIC_LOCK: Identifique o próximo valor na sequência de memória:", "var(--cyan)");
+        appendLine(`SEQUENCE: [ ${sequence.join(' , ')} , ? ]`, "var(--gold)");
+        appendLine("TEMPO RESTANTE: 15s", "var(--red)");
+        
+        hackingGameState.timer = setTimeout(() => {
+            if (hackingGameState.active) {
+                appendLine("TIMEOUT: CARDINAL SYSTEM RESETTING...", "var(--red)");
+                hackingGameState.active = false;
+                playErrorSound();
+            }
+        }, 15000);
+    }, 1000);
+  },
 
   // Action commands
   clear: () => { 
@@ -1597,6 +1736,8 @@ const commands = {
   },
   rest: () => {
     playerSP = 100;
+    playerSyncRate = 100;
+    document.body.classList.remove('neural-fatigue-active');
     appendLine("Sincronização neural restaurada. Stamina: 100%", "var(--teal)");
     updateHPHUD();
   },
@@ -1647,12 +1788,27 @@ const commands = {
     appendLine(`Transferindo ${amount} ₩ para ${target.toUpperCase()}...`, "var(--gold)");
     setTimeout(() => appendLine("Transação encriptada via Cardinal Protocol concluída.", "var(--teal)"), 1000);
   },
+  purge: () => {
+    const cost = 10000;
+    if (playerWoolongs < cost) return appendLine("Erro: Woolongs insuficientes para purga (10k necessários).", "var(--red)");
+    playerWoolongs -= cost;
+    updateCorruption(-100);
+    appendLine("CARDINAL: Varredura concluída. Memória corrompida liberada.", "var(--teal)");
+  },
   "system-call": (args) => {
     const sub = args[0];
     if (sub === 'overload') {
         document.body.classList.add('destruct-active');
         setTimeout(() => document.body.classList.remove('destruct-active'), 2000);
         appendLine("CARDINAL: Forçando sobrecarga de buffers neurais...", "var(--red)");
+    } else if (sub === 'diagnose') {
+        appendLine("--- SISTEMA CARDINAL: AUTO-DIAGNÓSTICO ---", "var(--gold)");
+        appendLine(`KERNEL_VER: 6.1.0-bebop-stable`, "var(--cream)");
+        appendLine(`CPU_CORES: 8x Virtual Neural Core`, "var(--cream)");
+        appendLine(`NEURAL_SYNC: ${playerSyncRate}% [${playerSyncRate < 30 ? 'CRITICAL' : 'STABLE'}]`, playerSyncRate < 30 ? "var(--red)" : "var(--teal)");
+        appendLine(`MEM_TOTAL: 32.768 MB`, "var(--cream)");
+        appendLine(`ACTIVE_PROCESSES: ${Math.floor(Math.random() * 50 + 100)}`, "var(--cyan)");
+        appendLine(`THREAT_LEVEL: ${systemThreatLevel.toFixed(1)}%`, systemThreatLevel > 80 ? "var(--red)" : "var(--gold)");
     } else if (sub === 'purge') {
         if (document.body.classList.contains('emergency-mode')) {
             appendLine("Iniciando purga de sistema...", "var(--teal)");
@@ -1698,16 +1854,35 @@ const commands = {
         appendLine(`Erro: Arquivo '${fileName}' não encontrado.`, "var(--red)");
     }
   },
-  missions: () => { // Renamed from status to missions for clarity
-        appendLine("--- CARDINAL_ACTIVE_MISSIONS ---", "var(--gold)");
-        const qEntries = Object.values(quests);
-        const total = qEntries.length;
-        const completed = qEntries.filter(q => q.completed).length;
-        
-        qEntries.forEach(q => {
-          const mark = q.completed ? "[OK]" : "[..]";
-          appendLine(`${mark} ${q.title}`, q.completed ? "var(--teal)" : "var(--muted)");
-        });
+  missions: () => {
+    appendLine("--- CARDINAL_ACTIVE_MISSIONS ---", "var(--gold)");
+    Object.values(quests).forEach(q => {
+      const mark = q.completed ? "[CORRECTED]" : "[PENDING]";
+      const color = q.completed ? "var(--teal)" : "var(--muted)";
+      appendLine(`${mark} ${q.title.padEnd(20)} | REWARD: ${q.woolongs} ₩`, color);
+    });
+  },
+  stacia: () => {
+    document.body.classList.toggle('stacia-mode');
+    const isStacia = document.body.classList.contains('stacia-mode');
+    playLevelUpSound();
+    appendLine(isStacia ? "ACESSO ADMINISTRATIVO: MODO STACIA ATIVADO." : "MODO STACIA DESATIVADO.", "var(--gold)");
+    saoAnnouncement(isStacia ? "GOD_MODE: ADMINISTRATIVE_OVERRIDE" : "SYSTEM: NORMAL_MODE");
+  },
+  reboot: () => {
+    appendLine("Reinicializando sistemas da Bebop...", "var(--gold)");
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
+  },
+  audit: () => {
+    appendLine("Iniciando auditoria de segurança...", "var(--gold)");
+    setTimeout(() => {
+      appendLine("[OK] Kernel Integrity Check", "var(--teal)");
+      appendLine("[OK] Neural Link Handshake", "var(--teal)");
+      appendLine("[OK] Woolong Transaction Logs", "var(--teal)");
+      appendLine("[WARN] Local Threat Level elevated", "var(--gold)");
+    }, 1500);
   },
   stacia: () => {
     document.body.classList.toggle('stacia-mode');
@@ -1911,6 +2086,33 @@ termInput?.addEventListener('keydown', (e) => {
 
   if (e.key === 'Enter') {
     const fullInput = termInput.value.trim();
+    
+    // Interceptação de input para o Hacking Minigame
+    if (hackingGameState.active) {
+        const val = parseInt(fullInput);
+        if (val === hackingGameState.correctAnswer) {
+            clearTimeout(hackingGameState.timer);
+            hackingGameState.active = false;
+            appendLine("ACCESS GRANTED: Assinatura lógica compatível.", "var(--teal)");
+            playLevelUpSound();
+            
+            const fileToUnlock = vaultFiles.find(f => f.locked);
+            if (fileToUnlock) {
+                fileToUnlock.locked = false;
+                appendLine(`SETOR DESBLOQUEADO: ${fileToUnlock.name}`, "var(--gold)");
+                completeQuest('archivist');
+            }
+        } else {
+            appendLine("ACCESS DENIED: Hash de segurança inválido. Tentativa registrada.", "var(--red)");
+            playErrorSound();
+            hackingGameState.active = false;
+            clearTimeout(hackingGameState.timer);
+            triggerWarning();
+        }
+        termInput.value = '';
+        return;
+    }
+
     const args = fullInput.split(' ');
     const cmd = args.shift().toLowerCase();
     
@@ -2072,6 +2274,10 @@ setInterval(() => {
   if(performance.memory && memEl) {
     const usedMem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
     memEl.innerText = `${usedMem}MB`;
+    
+    // Atualiza HUD de equipamentos
+    const hudEq = document.getElementById('hud-equipped');
+    if (hudEq) hudEq.innerText = `${equippedItems.weapon?.name || 'NO_WPN'} | ${equippedItems.module?.name || 'NO_MOD'}`;
   }
   
   // Reset para o próximo ciclo de amostragem

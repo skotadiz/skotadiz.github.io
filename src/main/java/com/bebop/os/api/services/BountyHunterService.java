@@ -29,6 +29,7 @@ public class BountyHunterService {
         // Inicializa com alvos padrão para o Sistema Cardinal
         createFloorBossBounty(74, "THE GLEAM EYES", 50000000);
         createFloorBossBounty(90, "THE FATAL SCYTHE", 150000000);
+        createFloorBossBounty(100, "HEATHCLIFF", 1000000000);
         createSyndicateTarget("VICIOUS", 300000000, 99);
     }
 
@@ -62,11 +63,17 @@ public class BountyHunterService {
      */
     public String calculateLoot(Target target) {
         if ("VICIOUS".equals(target.name())) return "LEGENDARY: [Red Dragon Katana]";
-        double roll = ThreadLocalRandom.current().nextDouble(100);
-        // Novo: Loot Lendário mais dinâmico
-        if (roll > 98.0) return "MYTHIC: [Holy Sword Excalibur]";
-        if (roll > 90.0) return "LEGENDARY: [Dark Repulser Core]";
-        if (roll > 80.0) return "RARE: [Swordfish II Thruster]";
+
+        // Sorte baseada no Danger Level e Floor: Alvos mais perigosos aumentam o piso do roll
+        double floorFactor = target.floor().startsWith("Floor") ? 
+                             Integer.parseInt(target.floor().replaceAll("\\D+", "")) * 0.5 : 0;
+        double dangerBonus = (target.dangerLevel() * 0.15) + floorFactor;
+        double roll = ThreadLocalRandom.current().nextDouble(100) + dangerBonus;
+
+        if (roll > 115.0) return "MYTHIC: [Holy Sword Excalibur]";
+        if (roll > 100.0) return "LEGENDARY: [Dark Repulser Core]";
+        if (roll > 85.0) return "RARE: [Swordfish II Thruster]";
+        if (roll > 60.0) return "UNCOMMON: [Woolong Credit Chip]";
         return "COMMON: [Woolong Scrap]";
     }
 

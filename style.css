@@ -19,6 +19,20 @@ a, span, h1, h2, h3, div { text-decoration: none !important; } /* Limpeza agress
   --ff-mono:'Share Tech Mono',monospace;
 }
 
+/* ─── SYSTEM CORRUPTION GLITCH ─── */
+@keyframes ui-corrupt {
+  0% { transform: translate(0); }
+  20% { transform: translate(-3px, 2px) skewX(5deg); filter: hue-rotate(90deg); }
+  40% { transform: translate(3px, -2px) skewX(-5deg); opacity: 0.8; }
+  100% { transform: translate(0); }
+}
+.corrupted-ui .glitch-name, 
+.corrupted-ui section, 
+.corrupted-ui .system-hud {
+  animation: ui-corrupt 0.2s infinite;
+  filter: contrast(1.5) brightness(1.2);
+}
+
 /* ─── CUSTOM SCROLLBAR ─── */
 ::-webkit-scrollbar {
   width: 8px;
@@ -147,6 +161,11 @@ body.emergency-mode .system-hud {
   55% { opacity: 0.7; filter: brightness(1.1); }
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { text-shadow: 0 0 5px var(--gold), 0 0 10px var(--gold); }
+  20%, 24%, 55% { text-shadow: none; }
+}
+
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 @keyframes orbit{from{transform:rotate(0deg) translateX(60px) rotate(0deg)}to{transform:rotate(360deg) translateX(60px) rotate(-360deg)}}
@@ -386,18 +405,30 @@ body.emergency-mode .system-hud {
 /* Nova Barra de Vida */
 .boss-hp-container-new {
     width: 100%;
-    height: 25px;
-    background: #222;
-    border: 2px solid #444;
+    height: 14px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
     margin-bottom: 20px;
     position: relative;
     overflow: hidden;
+    clip-path: polygon(1% 0, 100% 0, 99% 100%, 0 100%);
 }
 
 .boss-hp-fill-new {
     height: 100%;
     background: linear-gradient(90deg, #06ffa5, #2ecc71);
     transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* MODO STACIA (ADMIN OVERRIDE) */
+body.stacia-mode {
+  --gold: #fff;
+  --teal: #fff;
+  --cyan: #fff;
+  background: radial-gradient(circle, #1a1a2e 0%, #000 100%) !important;
+}
+body.stacia-mode .glitch-name {
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
 }
 
 .hp-label-overlay {
@@ -560,8 +591,9 @@ body.emergency-mode .system-hud {
   display: flex; flex-direction: column; gap: 10px; pointer-events: none;
 }
 .sao-notif {
-  background: rgba(255, 255, 255, 0.9); color: #333;
-  padding: 10px 20px; border-left: 5px solid var(--gold);
+  background: rgba(10, 10, 20, 0.95); color: var(--cream);
+  padding: 12px 25px; border-left: 4px solid var(--gold);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   font-family: var(--ff-ui); font-size: 0.8rem; font-weight: 600;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   animation: slideInLeft 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
@@ -831,6 +863,89 @@ body.boss-active .system-hud { border-right-color: var(--red); box-shadow: -10px
 .file-item:hover { background: rgba(6, 255, 165, 0.05); border-color: var(--teal); transform: translateY(-3px); }
 .file-item i { font-size: 2rem; color: var(--teal); margin-bottom: 10px; display: block; }
 .file-item span { font-family: var(--ff-mono); font-size: 0.7rem; color: var(--cream); }
+.file-item.locked, .item-card.equipped {
+  border: 1px solid var(--teal);
+  box-shadow: 0 0 10px var(--teal);
+}
+.item-card.equipped::before {
+  content: 'EQUIPPED';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.5rem;
+  color: var(--teal);
+}
+.file-item.locked {
+  opacity: 0.5;
+  filter: grayscale(1);
+  cursor: help;
+  border: 1px dashed rgba(230, 57, 70, 0.4);
+}
+
+/* ─── SKILL TREE CONSTELLATION ─── */
+.skill-node {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #222;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+.skill-node::after {
+  content: attr(data-name);
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--ff-mono);
+  font-size: 0.5rem;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.skill-node.available {
+  background: var(--ink);
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.5);
+}
+.skill-node.available:hover {
+  transform: translate(-50%, -50%) scale(1.4);
+  box-shadow: 0 0 20px var(--gold);
+}
+.skill-node.active {
+  background: var(--gold);
+  border-color: #fff;
+  box-shadow: 0 0 15px var(--gold), 0 0 30px var(--gold);
+}
+.skill-node.active::after { color: var(--gold); font-weight: bold; text-shadow: 0 0 5px #000; }
+
+.skill-line {
+  stroke: rgba(245, 166, 35, 0.1);
+  stroke-width: 1.5;
+  stroke-dasharray: 4;
+  transition: all 0.5s;
+}
+.skill-line.active {
+  stroke: var(--gold);
+  stroke-dasharray: 0;
+  filter: drop-shadow(0 0 3px var(--gold));
+}
+
+.node-tooltip {
+  position: absolute;
+  background: rgba(0,0,0,0.9);
+  color: var(--cream);
+  padding: 5px 10px;
+  font-size: 0.6rem;
+  border: 1px solid var(--gold);
+  pointer-events: none;
+  z-index: 100;
+  display: none;
+}
 .file-status { grid-column: span 2; font-family: var(--ff-mono); font-size: 0.55rem; color: var(--muted); margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
 
 /* ─── HANGAR / BLUEPRINT STYLING ─── */

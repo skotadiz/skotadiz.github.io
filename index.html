@@ -108,9 +108,14 @@
   </div>
   <div class="sao-hp-container">
     <div id="sao-hp-fill" class="sao-hp-fill"></div>
-    <div id="hp-text-label" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:white; font-family:var(--ff-mono); pointer-events:none; text-shadow:1px 1px 1px black;">HP: 100 / 100</div>
+    <div id="hp-text-label" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:white; font-family:var(--ff-mono); pointer-events:none;">HP: 100 / 100</div>
   </div>
-  <div class="sao-sp-container">
+  <div class="hud-line"><span>NEURAL_SYNC</span> <span id="hud-sync-pct">100%</span></div>
+  <div class="sao-sp-container" style="height: 4px; margin-bottom: 5px;">
+    <div id="sao-sync-fill" class="sao-sp-fill" style="background:var(--teal)"></div>
+  </div>
+  <div class="hud-line"><span>STAMINA_SP</span> <span id="hud-sp-val">100</span></div>
+  <div class="sao-sp-container" style="height: 4px; margin-bottom: 15px;">
     <div id="sao-sp-fill" class="sao-sp-fill"></div>
   </div>
   <div class="hud-line" style="color:var(--gold); font-weight:bold;"><span>WOOLONGS_</span> <span id="hud-woolongs">0</span> ₩</div>
@@ -144,6 +149,11 @@
     <i class="fas fa-th-large"></i> MAIN_MENU [M]
   </button>
   <div class="hud-sep"></div>
+  <div class="hud-label">Equipped Gear</div>
+  <div id="hud-equipped" class="hud-inventory-mini" style="margin-bottom: 10px; color: var(--cyan); font-size: 0.6rem;">
+    NONE_EQUIPPED
+  </div>
+  <div class="hud-sep"></div>
   <div class="hud-label">Live Security Logs</div>
   <div id="hud-logs" class="hud-logs">
     <div class="log-line">IDPS: Kernel 6.1.0-bebop active</div>
@@ -176,6 +186,21 @@
             <div class="pixel-shadow"></div>
         </div>
 
+        <!-- Floor 100: Heathcliff -->
+        <div class="cert-card boss-card" style="border-color: var(--gold); background: rgba(255,255,255,0.02);">
+            <div class="bounty-tag" style="background:var(--gold); color:black">LEGENDARY: FLOOR_100</div>
+            <div class="boss-title">HEATHCLIFF</div>
+            <div class="boss-hp-bar">
+                <div class="hp-segment" style="background:var(--red)"></div><div class="hp-segment" style="background:var(--gold)"></div>
+                <div class="hp-segment" style="background:var(--cyan)"></div>
+            </div>
+            <div class="boss-reward">REWARD: UNLIMITED_WOOLONGS</div>
+            <div class="neural-intel" style="color:var(--gold)">"THE IMMORTAL OBJECT: SYSTEM_PHASE_ACTIVE"</div>
+            <button id="ruby-palace-btn" class="sao-button-primary" style="margin-top:15px; width:100%; background:var(--red); color:white" onclick="initiateBossDuel('100')">
+                <i class="fas fa-chess-king"></i> ENTER RUBY PALACE
+            </button>
+        </div>
+
         <div class="combat-log" id="combat-log">Aguardando sequência de entrada...</div>
         
         <!-- Nova Barra de Vida Visual -->
@@ -204,16 +229,24 @@
       <button class="vh-close" onclick="toggleHangar()">×</button>
     </div>
     <div class="vault-content" style="display:block;">
-      <div class="blueprint-view">
-        <div class="b-spec"><span>MODEL:</span> MONO RACER / SWORDFISH II</div>
-        <div class="b-spec"><span>ENGINE:</span> ROLLS-ROYCE AF-1C HERMES</div>
-        <div class="b-spec"><span>MAX_SPEED:</span> 1.2M IN ATMOSPHERE</div>
-        <div class="b-spec"><span>WEAPONS:</span> 4 BARREL 20MM CANNON / PLASMA CANNON</div>
-        <div class="b-grid-line"></div>
-        <p style="font-size:0.65rem; color:var(--muted); line-height:1.4; margin-top:10px;">
-          A Swordfish II é uma nave de corrida Mono Racer altamente modificada por Doohan para operações de caça de recompensas. Pertencente a Spike Spiegel.
-        </p>
+      <div class="blueprint-view" id="hangar-upgrade-panel">
+        <!-- Conteúdo renderizado via script.js -->
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL TREE MODAL (CONSTELLATION MAP) -->
+<div id="skill-tree-modal" class="vault-overlay">
+  <div class="vault-window" style="border-color:var(--gold); max-width:800px; width:95vw; height:80vh;">
+    <div class="vault-header" style="background:var(--gold)">
+      <span class="vh-title"><i class="fas fa-project-diagram"></i> NEURAL_CONSTELLATION_MAP [SP: <span id="st-points-val">0</span>]</span>
+      <button class="vh-close" onclick="toggleSkillTree()">×</button>
+    </div>
+    <div class="vault-content" style="display:block; height:calc(100% - 35px); position:relative; overflow:hidden; background: radial-gradient(circle at center, #0d0d1a 0%, #08080f 100%);">
+      <svg id="skill-tree-lines" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></svg>
+      <div id="skill-tree-map" style="position:relative; width:100%; height:100%;"></div>
+      <div class="file-status" style="position:absolute; bottom:10px; left:20px;">HINT: Clique nas estrelas disponíveis para gastar Skill Points.</div>
     </div>
   </div>
 </div>
@@ -224,7 +257,7 @@
     <div class="sao-menu-item" onclick="toggleQuestLog()"><i class="fas fa-scroll"></i><span>Quests</span></div>
     <div class="sao-menu-item" onclick="toggleInventory()"><i class="fas fa-briefcase"></i><span>Inventory</span></div>
     <div class="sao-menu-item" onclick="toggleBlackMarket()"><i class="fas fa-shopping-cart"></i><span>Black Market</span></div>
-    <div class="sao-menu-item" onclick="location.href='#habilidades'"><i class="fas fa-khanda"></i><span>Skills</span></div>
+    <div class="sao-menu-item" onclick="toggleSkillTree()"><i class="fas fa-project-diagram"></i><span>Skill Tree</span></div>
     <div class="sao-menu-item" onclick="toggleHangar()"><i class="fas fa-cog"></i><span>Equipment</span></div>
     <div class="sao-menu-item" onclick="location.href='#contato'"><i class="fas fa-envelope"></i><span>Message</span></div>
     <div class="sao-menu-item exit" onclick="toggleSAOMenu()"><i class="fas fa-times"></i><span>Close</span></div>
@@ -286,15 +319,8 @@
       <span class="vh-title"><i class="fas fa-folder-open"></i> DECRYPTED_FILES_SYSTEM</span>
       <button class="vh-close" onclick="toggleVault()">×</button>
     </div>
-    <div class="vault-content">
-      <div class="file-item" onclick="appendLine('Acessando curriculo_v3.pdf...', 'var(--teal)')">
-        <i class="far fa-file-pdf"></i>
-        <span>curriculo.pdf</span>
-      </div>
-      <div class="file-item" onclick="decryptEffect('NOTA_INTERNA: O alvo está em Sorocaba.')">
-        <i class="far fa-file-alt"></i>
-        <span>intel_report.txt</span>
-      </div>
+    <div id="vault-content-grid" class="vault-content">
+      <!-- Arquivos injetados via script.js -->
       <div class="file-status">SYSLOG: VOLUME_MOUNTED_READ_ONLY</div>
     </div>
   </div>
