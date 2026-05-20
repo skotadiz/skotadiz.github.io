@@ -90,6 +90,9 @@
     <li><a href="#certificacoes">Certificações</a></li>
     <li><a href="#experiencia">Timeline</a></li>
     <li><a href="#projetos">Projetos</a></li>
+    <li><a href="#osint">OSINT</a></li>
+    <li><a href="#ocr">OCR</a></li>
+    <li><a href="#pentest">Pentest</a></li>
     <li><a href="#social">Social</a></li>
     <li><a href="#conquistas" style="color:var(--gold)">Conquistas</a></li>
     <li><a href="javascript:void(0)" onclick="toggleHangar()" style="color:var(--gold)" title="Hangar [HW]">Hangar [HW]</a></li>
@@ -681,10 +684,103 @@
   </div>
 </section>
 
+<!-- OSINT -->
+<section id="osint">
+  <div class="inner">
+    <div class="sec-label">06 &mdash; OSINT</div>
+    <h2 class="sec-title">Open Source <span>Intelligence</span></h2>
+    <div class="tool-container reveal">
+        <div class="tool-header">
+            <i class="fas fa-globe"></i> NETWORK_INTEL_TERMINAL
+        </div>
+        <div class="tool-body">
+            <div class="input-group" style="display:flex; gap:10px; margin-bottom: 15px;">
+                <input type="text" id="osint-target" placeholder="Insira IP ou Domínio (ex: 8.8.8.8)" class="fi">
+                <button onclick="runProfessionalOSINT()" class="sao-button-primary">ANALISAR_ALVO</button>
+            </div>
+            <div id="osint-results" class="terminal-body" style="height: 200px; margin-top: 15px; font-size: 0.7rem; border: 1px solid var(--muted2); overflow-y: auto;">
+                [WAITING_INPUT] Aguardando definição de alvo para coleta de metadados...
+            </div>
+            <button id="osint-download-btn" onclick="downloadOSINTReport()" class="sao-button-primary" style="display:none; margin-top:15px; width:100%; border-color:var(--gold); color:var(--gold);">
+                <i class="fas fa-file-pdf"></i> EXPORT_TO_PDF
+            </button>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- OCR -->
+<section id="ocr">
+  <div class="inner">
+    <div class="sec-label">07 &mdash; OCR</div>
+    <h2 class="sec-title">Optical Character <span>Recognition</span></h2>
+    <div class="tool-container reveal">
+        <div class="tool-header">
+            <i class="fas fa-file-invoice"></i> NEURAL_TEXT_EXTRACTOR (Tesseract Engine)
+        </div>
+        <div class="tool-body">
+            <div class="drop-zone" id="ocr-drop-zone">
+                <input type="file" id="ocr-file" hidden accept="image/*">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Arraste uma imagem ou clique para processar OCR</p>
+            </div>
+            <div id="ocr-progress-wrap" style="display:none; margin-top:10px;">
+                <div class="loader-bar-wrap"><div id="ocr-progress-bar" class="loader-bar"></div></div>
+                <div id="ocr-status" class="hud-line" style="font-size:0.6rem">STATUS: INITIALIZING...</div>
+            </div>
+            <textarea id="ocr-result" class="ft" style="margin-top:15px; height:150px; font-family:var(--ff-mono);" readonly placeholder="O texto extraído aparecerá aqui..."></textarea>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- PENTEST -->
+<section id="pentest">
+  <div class="inner">
+    <div class="sec-label">08 &mdash; Pentest</div>
+    <h2 class="sec-title">Penetration <span>Testing</span></h2>
+    <div class="pentest-tools proj-grid">
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-fingerprint"></i> HASH_IDENTIFIER</div>
+            <p class="proj-p">Identifica algoritmos (MD5, SHA, Bcrypt) via assinaturas.</p>
+            <input type="text" id="hash-input" class="fi" placeholder="Cole o hash aqui...">
+            <button onclick="analyzeHash()" class="sao-button-primary" style="margin-top:10px; width:100%">IDENTIFICAR</button>
+            <div id="hash-output" class="hud-line" style="margin-top:10px; color:var(--teal)"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-network-wired"></i> PORT_DISCOVERY</div>
+            <p class="proj-p">Scanner de portas comuns via latência de handshake.</p>
+            <input type="text" id="scan-target" class="fi" placeholder="Alvo (ex: scanme.nmap.org)">
+            <button onclick="runProfessionalScan()" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--red); color:var(--red); background: rgba(230,57,70,0.05);">SCAN_TARGET</button>
+            <div id="scan-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-shield-virus"></i> HEADER_AUDIT</div>
+            <p class="proj-p">Verifica a presença de cabeçalhos de segurança (HSTS, CSP, XFO) em servidores remotos.</p>
+            <input type="text" id="header-target" class="fi" placeholder="URL (ex: google.com)">
+            <button onclick="analyzeSecurityHeaders()" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--cyan); color:var(--cyan); background: rgba(76,201,240,0.05);">AUDIT_HEADERS</button>
+            <div id="header-progress-wrap" style="display:none; margin-top:10px;">
+                <div class="loader-bar-wrap"><div id="header-progress-bar" class="loader-bar" style="background:var(--cyan)"></div></div>
+            </div>
+            <div id="header-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
+            <button id="header-download-btn" onclick="downloadHeaderReport()" class="sao-button-primary" style="display:none; margin-top:15px; width:100%; border-color:var(--gold); color:var(--gold);">
+                <i class="fas fa-file-pdf"></i> EXPORT_AUDIT_TO_PDF
+            </button>
+        </div>
+    </div>
+    <!-- GLOBAL RESET BUTTON -->
+    <div class="reveal" style="margin-top: 2rem; text-align: center;">
+        <button onclick="clearAllToolResults()" class="sao-button-primary" style="width: 100%; max-width: 400px; border-color: var(--red); color: var(--red); background: rgba(230, 57, 70, 0.05);">
+            <i class="fas fa-broom"></i> SYSTEM_PURGE: LIMPAR TODAS AS FERRAMENTAS
+        </button>
+    </div>
+  </div>
+</section>
+
 <!-- SOCIAL IMPACT -->
 <section id="social">
   <div class="inner">
-    <div class="sec-label">06 &mdash; Impacto Social</div>
+    <div class="sec-label">09 &mdash; Impacto Social</div>
     <h2 class="sec-title">Ações <span>&amp;</span> Voluntariado</h2>
     <div class="social-grid">
       
@@ -719,7 +815,7 @@
 <!-- CONQUISTAS -->
 <section id="conquistas">
   <div class="inner">
-    <div class="sec-label">07 &mdash; Progression</div>
+    <div class="sec-label">10 &mdash; Progression</div>
     <h2 class="sec-title">Sistema de <span>Conquistas</span></h2>
     <p class="sobre-p" style="margin-top:-2rem; margin-bottom:3rem; font-size:0.8rem">
       // Explore todas as áreas da nave para descriptografar os registros e subir de nível.
@@ -733,7 +829,7 @@
 <!-- CONTATO -->
 <section id="contato">
   <div class="inner">
-    <div class="sec-label">07 &mdash; Contato</div>
+    <div class="sec-label">11 &mdash; Contato</div>
     <h2 class="sec-title">Vamos <span>conversar</span></h2>
     <div class="contato-grid">
       <div class="reveal-l">
@@ -761,7 +857,7 @@
 <!-- BOSS BOUNTIES (NEW SECTION) -->
 <section id="boss-bounties" class="reveal">
   <div class="inner">
-    <div class="sec-label">08 &mdash; High Value Targets</div>
+    <div class="sec-label">12 &mdash; High Value Targets</div>
     <h2 class="sec-title">Floor <span>Bosses</span> / S-Rank</h2>
     <div id="boss-container" class="bounty-grid">
         <!-- Card Template para o Sistema Cardinal -->

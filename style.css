@@ -882,6 +882,33 @@ body.boss-active .system-hud { border-right-color: var(--red); box-shadow: -10px
   border: 1px dashed rgba(230, 57, 70, 0.4);
 }
 
+/* ─── TOOL MODULE STYLES ─── */
+.tool-container {
+    background: var(--ink3);
+    border: 1px solid var(--muted2);
+    margin-top: 2rem;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+.tool-header {
+    background: var(--muted2);
+    padding: 10px 15px;
+    font-family: var(--ff-mono);
+    font-size: 0.7rem;
+    color: var(--teal);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.tool-body { padding: 20px; }
+.drop-zone {
+    border: 2px dashed var(--muted2);
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.drop-zone:hover { border-color: var(--teal); background: rgba(6,255,165,0.02); }
+
 /* ─── SKILL TREE CONSTELLATION ─── */
 .skill-node {
   position: absolute;

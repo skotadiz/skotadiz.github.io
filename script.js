@@ -33,6 +33,13 @@ const SHIP_UPGRADES = {
 // Estados do Hacking Minigame
 let hackingGameState = { active: false, correctAnswer: -1, timer: null };
 
+// Estados do Pentest Minigame
+let pentestGameState = {
+    active: false,
+    targetHash: "",
+    timer: null
+};
+
 // Banco de Arquivos do Vault (Estrutura Dinâmica)
 let vaultFiles = [
   { id: "v1", name: "curriculo.pdf", icon: "fa-file-pdf", locked: false, action: "download" },
@@ -501,6 +508,9 @@ let quests = JSON.parse(localStorage.getItem('achievements_paf') || JSON.stringi
   experiencia: { title: "Linha do Tempo", desc: "Sincronize com o passado", completed: false, icon: "fa-hourglass-half", xp: 150, woolongs: 10000 },
   projetos: { title: "Arquiteto de Dados", desc: "Inspecione os artefatos", completed: false, icon: "fa-microchip", xp: 200, woolongs: 15000 },
   social: { title: "Impacto Local", desc: "Veja as ações sociais", completed: false, icon: "fa-heart", xp: 150, woolongs: 10000 },
+  osint: { title: "Digital Footprint", desc: "Explore as técnicas de OSINT", completed: false, icon: "fa-magnifying-glass", xp: 180, woolongs: 12000 },
+  ocr: { title: "Data Extractor", desc: "Descubra o poder do OCR", completed: false, icon: "fa-file-image", xp: 160, woolongs: 11000 },
+  pentest: { title: "System Breaker", desc: "Analise as fases de Pentest", completed: false, icon: "fa-user-secret", xp: 220, woolongs: 18000 },
   conquistas: { title: "Completionist", desc: "Acesse a galeria de troféus", completed: false, icon: "fa-trophy", xp: 100, woolongs: 5000 },
   boss_74: { title: "Gleam Eyes", desc: "Vença o Boss do 74º andar", completed: false, icon: "fa-sword", xp: 500, woolongs: 50000000 },
   boss_90: { title: "Reaper Defeated", desc: "Vença o Fatal Scythe no andar 90", completed: false, icon: "fa-ghost", xp: 1200, woolongs: 150000000 },
@@ -1447,6 +1457,7 @@ const startAudioOnInteraction = () => {
   setupAudioNodes();
   lofiAudio.play().then(() => {
     lofiIcon.classList.replace('fa-volume-mute', 'fa-volume-up');
+    applyLofiFilter(lofiAudio.volume); // Aplica o efeito imediatamente com o volume inicial
     updateAudioVisualizer();
     document.removeEventListener('click', startAudioOnInteraction);
   }).catch(() => {});
@@ -2147,6 +2158,82 @@ termInput?.addEventListener('keydown', (e) => {
   }
 });
 
+// ─── PENTEST MINIGAME LOGIC ───
+function pentestLog(text, color = 'var(--red)') {
+    const term = document.getElementById('pentest-terminal');
+    if (!term) return;
+    const line = document.createElement('div');
+    line.style.marginBottom = '5px';
+    line.style.color = color;
+    line.innerHTML = `<span style="opacity:0.5">> [msf-exploit] </span> ${text}`;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+}
+
+function startPentestMinigame() {
+    const modal = document.getElementById('pentest-minigame-modal');
+    const terminal = document.getElementById('pentest-terminal');
+    const input = document.getElementById('pentest-input');
+    
+    modal.classList.add('active');
+    terminal.innerHTML = "";
+    pentestGameState.active = true;
+    
+    pentestLog("Iniciando módulo: exploit/multi/handler...", "var(--gold)");
+    pentestLog("Payload: windows/x64/meterpreter/reverse_tcp");
+    pentestLog("Alvo detectado: 10.0.0.42 (SWORDFISH_AVIONICS)");
+    
+    setTimeout(() => {
+        pentestLog("Interceptando pacotes de autenticação...", "var(--gold)");
+        
+        // Gera 4 hashes, um deles será o alvo
+        const hashes = [
+            "0x" + Math.random().toString(16).slice(2, 8).toUpperCase(),
+            "0x7F" + Math.random().toString(16).slice(2, 6).toUpperCase(),
+            "0x" + Math.random().toString(16).slice(2, 8).toUpperCase(),
+            "0x" + Math.random().toString(16).slice(2, 8).toUpperCase()
+        ];
+        
+        // O hash correto é sempre o que começa com 0x7F (simulando uma vulnerabilidade específica)
+        pentestGameState.targetHash = hashes[1];
+        
+        pentestLog("Hashes de sessão capturados:", "var(--cyan)");
+        hashes.sort(() => Math.random() - 0.5).forEach(h => pentestLog(`  - ${h}`, "var(--cream)"));
+        
+        pentestLog("DICA CARDINAL: Procure o hash com cabeçalho de depuração '0x7F'.", "var(--gold)");
+        input.focus();
+    }, 1500);
+}
+
+function closePentestMinigame() {
+    document.getElementById('pentest-minigame-modal').classList.remove('active');
+    pentestGameState.active = false;
+}
+
+document.getElementById('pentest-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && pentestGameState.active) {
+        const val = e.target.value.trim().toUpperCase();
+        e.target.value = "";
+
+        if (val === pentestGameState.targetHash) {
+            pentestLog(`SUCESSO: Hash ${val} aceito!`, "var(--teal)");
+            pentestLog("Acesso Meterpreter estabelecido. Extraindo Woolongs...", "var(--teal)");
+            playLevelUpSound();
+            
+            const reward = 15000;
+            playerWoolongs += reward;
+            saoNotify(`SISTEMA INVADIDO: +${reward.toLocaleString()} ₩ extraídos.`, "var(--teal)");
+            updateXP();
+            
+            setTimeout(closePentestMinigame, 3000);
+        } else {
+            pentestLog(`ERRO: Hash ${val} inválido. Assinatura não confere.`, "var(--red)");
+            playErrorSound();
+            triggerWarning();
+        }
+    }
+});
+
 // ─── SECURITY LOG GENERATOR ───
 const logPool = [
   {t: "SSH attempt blocked: user 'admin'", c: "log-warn"},
@@ -2304,3 +2391,264 @@ setInterval(async () => {
     if(netEl) netEl.innerText = `${Date.now() - start}ms`;
   } catch(e) { /* Offline */ }
 }, 5000);
+
+// ─── PROFESSIONAL TOOL IMPLEMENTATIONS ───
+
+// 1. OSINT ENGINE & PDF EXPORTER
+async function runProfessionalOSINT() {
+    const targetInput = document.getElementById('osint-target');
+    const target = targetInput.value.trim();
+    const output = document.getElementById('osint-results');
+    const btn = document.getElementById('osint-download-btn');
+    if(!target) return;
+
+    output.innerHTML = `<span style="color:var(--teal)">[SYNC]</span> Iniciando coleta de metadados para ${target}...<br>`;
+    try {
+        const res = await fetch(`https://ipapi.co/${target}/json/`);
+        const data = await res.json();
+        if(data.error || !data.ip) throw new Error("Alvo inválido ou limite de API atingido.");
+        output.innerHTML = `
+            <span style="color:var(--gold)">--- OSINT_THREAT_REPORT: ${target} ---</span><br>
+            ASN: ${data.asn || 'N/A'}<br>
+            ORG: ${data.org || 'N/A'}<br>
+            LOC: ${data.city}, ${data.country_name}<br>
+            ISP: ${data.version} | LAT: ${data.latitude} | LON: ${data.longitude}<br>
+            <span style="color:var(--teal)">[SUCCESS] Dados recuperados.</span>`;
+        if(btn) btn.style.display = 'block';
+        if(typeof playItemSound === 'function') playItemSound();
+    } catch(e) {
+        output.innerHTML = `<span style="color:var(--red)">[ERROR]</span> Falha na coleta: ${e.message || 'Alvo inacessível'}.`;
+        if(btn) btn.style.display = 'none';
+    }
+}
+
+function downloadOSINTReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const results = document.getElementById('osint-results').innerText;
+    doc.setFillColor(8, 8, 15);
+    doc.rect(0, 0, 210, 297, 'F');
+    doc.setFont("courier", "bold"); doc.setFontSize(18); doc.setTextColor(245, 166, 35);
+    doc.text("BEBOP-OS: OSINT INTELLIGENCE REPORT", 15, 20);
+    doc.setDrawColor(245, 166, 35); doc.line(15, 25, 195, 25);
+    doc.setFontSize(12); doc.setTextColor(240, 235, 224); doc.setFont("courier", "normal");
+    const lines = doc.splitTextToSize(results, 180);
+    doc.text(lines, 15, 40);
+    doc.setFontSize(10); doc.setTextColor(85, 85, 112);
+    doc.text(`Generated at: ${new Date().toLocaleString()}`, 15, 280);
+    doc.save(`osint_report_${Date.now()}.pdf`);
+    if(typeof saoNotify === 'function') saoNotify("RELATÓRIO PDF GERADO", "var(--teal)");
+}
+
+// 2. OCR ENGINE (Tesseract.js)
+const ocrFileInput = document.getElementById('ocr-file');
+const ocrDropZone = document.getElementById('ocr-drop-zone');
+
+ocrDropZone?.addEventListener('click', () => ocrFileInput.click());
+
+ocrFileInput?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    
+    const status = document.getElementById('ocr-status');
+    const progress = document.getElementById('ocr-progress-bar');
+    const resultArea = document.getElementById('ocr-result');
+    const wrap = document.getElementById('ocr-progress-wrap');
+
+    if(wrap) wrap.style.display = 'block';
+    if(resultArea) resultArea.value = "Iniciando motor neural de OCR...";
+
+    try {
+        // Tesseract.js v5 utiliza Tesseract.recognize diretamente para simplicidade profissional
+        const { data: { text } } = await Tesseract.recognize(file, 'por', {
+            logger: m => {
+                if(m.status === 'recognizing text') {
+                    const p = Math.floor(m.progress * 100);
+                    if(progress) progress.style.width = p + '%';
+                    if(status) status.innerText = `RECOGNIZING: ${p}%`;
+                }
+            }
+        });
+        if(resultArea) resultArea.value = text;
+        if(status) status.innerText = "STATUS: EXTRACTION_COMPLETE";
+        if(typeof playLevelUpSound === 'function') playLevelUpSound();
+    } catch (err) {
+        if(resultArea) resultArea.value = "ERROR: Falha no processamento neural.";
+    }
+});
+
+// 3. PENTEST ENGINE
+function analyzeHash() {
+    const hash = document.getElementById('hash-input').value.trim();
+    const output = document.getElementById('hash-output');
+    const types = { 32: "MD5", 40: "SHA-1", 64: "SHA-256", 60: "Bcrypt" };
+    if(output) output.innerText = types[hash.length] ? `PROBABLE_ALGO: ${types[hash.length]}` : "UNKNOWN_HASH_TYPE";
+}
+
+async function runProfessionalScan() {
+    const target = document.getElementById('scan-target').value.trim().replace(/^https?:\/\//, '');
+    const resDiv = document.getElementById('scan-results');
+    if(!target) return;
+
+    resDiv.innerHTML = `<span style="color:var(--gold)">[SCAN]</span> Iniciando varredura em ${target}...<br>`;
+    const ports = [80, 443, 21, 22, 3306];
+    
+    for(let port of ports) {
+        const start = Date.now();
+        try {
+            // AbortController para evitar que o scan demore demais
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 1500);
+            
+            await fetch(`https://${target}:${port}`, { mode: 'no-cors', signal: controller.signal, cache: 'no-store' });
+            clearTimeout(timeout);
+            resDiv.innerHTML += `PORT ${port.toString().padEnd(5)}: <span style="color:var(--teal)">OPEN/FILTERED</span><br>`;
+        } catch(e) {
+            const duration = Date.now() - start;
+            // Se o erro foi rápido, a porta provavelmente está aberta mas recusou o protocolo HTTP
+            resDiv.innerHTML += duration < 500 ? `PORT ${port.toString().padEnd(5)}: <span style="color:var(--teal)">OPEN</span><br>` : `PORT ${port.toString().padEnd(5)}: <span style="color:var(--muted)">CLOSED/TIMED_OUT</span><br>`;
+        }
+        resDiv.scrollTop = resDiv.scrollHeight;
+    }
+    resDiv.innerHTML += `[COMPLETE] Discovery finalizado.`;
+}
+
+async function analyzeSecurityHeaders() {
+    const target = document.getElementById('header-target').value.trim();
+    const results = document.getElementById('header-results');
+    const wrap = document.getElementById('header-progress-wrap');
+    const bar = document.getElementById('header-progress-bar');
+    const btn = document.getElementById('header-download-btn');
+    
+    if(!target) return;
+
+    results.innerHTML = `[SYNC] Iniciando auditoria de cabeçalhos em ${target}...<br>`;
+    if(wrap) wrap.style.display = 'block';
+    if(bar) bar.style.width = '0%';
+    
+    // Simulação de progresso enquanto a requisição ocorre
+    let progress = 0;
+    const progInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 15;
+            if(bar) bar.style.width = Math.min(90, progress) + '%';
+        }
+    }, 100);
+
+    try {
+        // Consumindo API pública profissional para evitar bloqueios de CORS do navegador ao ler headers remotos
+        const res = await fetch(`https://api.hackertarget.com/httpheaders/?q=${target}`);
+        const data = await res.text();
+        
+        clearInterval(progInterval);
+        if(bar) bar.style.width = '100%';
+        
+        if(data.toLowerCase().includes("error") || data.length < 10) throw new Error();
+
+        const headersToTrack = [
+            { h: 'Content-Security-Policy', desc: 'CSP', info: 'Previne ataques de Cross-Site Scripting (XSS) e injeção de dados.' },
+            { h: 'Strict-Transport-Security', desc: 'HSTS', info: 'Força conexões HTTPS para prevenir ataques de downgrade (SSL Stripping).' },
+            { h: 'X-Frame-Options', desc: 'XFO', info: 'Protege contra Clickjacking ao impedir o carregamento em frames.' },
+            { h: 'X-Content-Type-Options', desc: 'XCTO', info: 'Previne o farejamento de MIME-types pelo navegador.' },
+            { h: 'Referrer-Policy', desc: 'RP', info: 'Controla quais informações de referência são enviadas nas requisições.' },
+            { h: 'Permissions-Policy', desc: 'PP', info: 'Define permissões para o uso de recursos como câmera e geolocalização.' }
+        ];
+
+        results.innerHTML = `<span style="color:var(--gold)">--- SECURITY_HEADERS_AUDIT ---</span><br>`;
+        
+        headersToTrack.forEach(item => {
+            const regex = new RegExp(item.h, 'i');
+            const found = regex.test(data);
+            const status = found ? 'PASS' : 'MISSING';
+            const color = found ? 'var(--teal)' : 'var(--red)';
+            results.innerHTML += `<span title="${item.info}" style="cursor:help; border-bottom:1px dotted var(--muted);">${item.h.padEnd(25)}</span>: <span style="color:${color}">${status}</span><br>`;
+        });
+
+        results.innerHTML += `<br><span style="color:var(--muted)">[FINISH] Auditoria concluída.</span>`;
+        if(typeof playItemSound === 'function') playItemSound();
+        if(btn) btn.style.display = 'block';
+        
+        setTimeout(() => { if(wrap) wrap.style.display = 'none'; }, 1000);
+    } catch(e) {
+        clearInterval(progInterval);
+        results.innerHTML = `<span style="color:var(--red)">[ERROR] Falha na auditoria. O domínio pode ser inválido ou o serviço está temporariamente indisponível.</span>`;
+        if(wrap) wrap.style.display = 'none';
+        if(btn) btn.style.display = 'none';
+    }
+    results.scrollTop = results.scrollHeight;
+}
+
+function downloadHeaderReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const results = document.getElementById('header-results').innerText;
+    const target = document.getElementById('header-target').value;
+    
+    doc.setFillColor(8, 8, 15);
+    doc.rect(0, 0, 210, 297, 'F');
+    
+    doc.setFont("courier", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(245, 166, 35);
+    doc.text("BEBOP-OS: SECURITY HEADERS AUDIT", 15, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(76, 201, 240);
+    doc.text(`TARGET_URL: ${target}`, 15, 30);
+    
+    doc.setDrawColor(245, 166, 35);
+    doc.line(15, 35, 195, 35);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(240, 235, 224);
+    doc.setFont("courier", "normal");
+    
+    const lines = doc.splitTextToSize(results, 180);
+    doc.text(lines, 15, 45);
+    
+    doc.setTextColor(85, 85, 112);
+    doc.text(`Generated at: ${new Date().toLocaleString()}`, 15, 280);
+    doc.text("See you space cowboy...", 15, 285);
+    
+    doc.save(`header_audit_${target.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+    if(typeof saoNotify === 'function') saoNotify("AUDIT PDF GERADO", "var(--teal)");
+}
+
+// 4. GLOBAL PURGE FUNCTION
+function clearAllToolResults() {
+    // Reset OSINT
+    const osintResults = document.getElementById('osint-results');
+    if (osintResults) osintResults.innerHTML = '[WAITING_INPUT] Aguardando definição de alvo para coleta de metadados...';
+    const osintBtn = document.getElementById('osint-download-btn');
+    if (osintBtn) osintBtn.style.display = 'none';
+    const osintTarget = document.getElementById('osint-target');
+    if (osintTarget) { osintTarget.value = ''; osintTarget.blur(); }
+
+    // Reset OCR
+    const ocrResult = document.getElementById('ocr-result');
+    if (ocrResult) ocrResult.value = '';
+    const ocrStatus = document.getElementById('ocr-status');
+    if (ocrStatus) ocrStatus.innerText = 'STATUS: READY';
+    const ocrProgress = document.getElementById('ocr-progress-bar');
+    if (ocrProgress) ocrProgress.style.width = '0%';
+    const ocrWrap = document.getElementById('ocr-progress-wrap');
+    if (ocrWrap) ocrWrap.style.display = 'none';
+
+    // Reset Pentest
+    const hashInput = document.getElementById('hash-input'); if (hashInput) hashInput.value = '';
+    const hashOutput = document.getElementById('hash-output'); if (hashOutput) hashOutput.innerText = '';
+    const scanTarget = document.getElementById('scan-target'); if (scanTarget) scanTarget.value = '';
+    const scanResults = document.getElementById('scan-results'); if (scanResults) scanResults.innerHTML = '';
+    const ocrFile = document.getElementById('ocr-file'); if (ocrFile) ocrFile.value = '';
+
+    const headerTarget = document.getElementById('header-target'); if (headerTarget) headerTarget.value = '';
+    const headerResults = document.getElementById('header-results'); if (headerResults) headerResults.innerHTML = '';
+    const headerWrap = document.getElementById('header-progress-wrap'); if (headerWrap) headerWrap.style.display = 'none';
+    const headerBar = document.getElementById('header-progress-bar'); if (headerBar) headerBar.style.width = '0%';
+    const headerBtn = document.getElementById('header-download-btn');
+    if (headerBtn) headerBtn.style.display = 'none';
+
+    // UI Feedback
+    if (typeof playClearSound === 'function') playClearSound();
+    if (typeof saoNotify === 'function') saoNotify("SYSTEM_PURGE: Dados das ferramentas limpos.", "var(--red)");
+}
