@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<!-- External Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -696,7 +699,7 @@
         <div class="tool-body">
             <div class="input-group" style="display:flex; gap:10px; margin-bottom: 15px;">
                 <input type="text" id="osint-target" placeholder="Insira IP ou Domínio (ex: 8.8.8.8)" class="fi">
-                <button onclick="runProfessionalOSINT()" class="sao-button-primary">ANALISAR_ALVO</button>
+                <button onclick="runProfessionalOSINT(event)" class="sao-button-primary">ANALISAR_ALVO</button>
             </div>
             <div id="osint-results" class="terminal-body" style="height: 200px; margin-top: 15px; font-size: 0.7rem; border: 1px solid var(--muted2); overflow-y: auto;">
                 [WAITING_INPUT] Aguardando definição de alvo para coleta de metadados...
@@ -729,6 +732,9 @@
                 <div id="ocr-status" class="hud-line" style="font-size:0.6rem">STATUS: INITIALIZING...</div>
             </div>
             <textarea id="ocr-result" class="ft" style="margin-top:15px; height:150px; font-family:var(--ff-mono);" readonly placeholder="O texto extraído aparecerá aqui..."></textarea>
+            <button id="ocr-download-btn" onclick="downloadOCRResult()" class="sao-button-primary" style="display:none; margin-top:15px; width:100%; border-color:var(--teal); color:var(--teal);">
+                <i class="fas fa-file-download"></i> EXPORT_TEXT_TO_TXT
+            </button>
         </div>
     </div>
   </div>
@@ -751,20 +757,120 @@
             <div class="proj-h"><i class="fas fa-network-wired"></i> PORT_DISCOVERY</div>
             <p class="proj-p">Scanner de portas comuns via latência de handshake.</p>
             <input type="text" id="scan-target" class="fi" placeholder="Alvo (ex: scanme.nmap.org)">
-            <button onclick="runProfessionalScan()" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--red); color:var(--red); background: rgba(230,57,70,0.05);">SCAN_TARGET</button>
+            <button onclick="runProfessionalScan(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--red); color:var(--red); background: rgba(230,57,70,0.05);">SCAN_TARGET</button>
             <div id="scan-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
         </div>
         <div class="proj-card reveal">
             <div class="proj-h"><i class="fas fa-shield-virus"></i> HEADER_AUDIT</div>
             <p class="proj-p">Verifica a presença de cabeçalhos de segurança (HSTS, CSP, XFO) em servidores remotos.</p>
             <input type="text" id="header-target" class="fi" placeholder="URL (ex: google.com)">
-            <button onclick="analyzeSecurityHeaders()" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--cyan); color:var(--cyan); background: rgba(76,201,240,0.05);">AUDIT_HEADERS</button>
+            <button onclick="analyzeSecurityHeaders(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--cyan); color:var(--cyan); background: rgba(76,201,240,0.05);">AUDIT_HEADERS</button>
             <div id="header-progress-wrap" style="display:none; margin-top:10px;">
                 <div class="loader-bar-wrap"><div id="header-progress-bar" class="loader-bar" style="background:var(--cyan)"></div></div>
             </div>
             <div id="header-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
             <button id="header-download-btn" onclick="downloadHeaderReport()" class="sao-button-primary" style="display:none; margin-top:15px; width:100%; border-color:var(--gold); color:var(--gold);">
                 <i class="fas fa-file-pdf"></i> EXPORT_AUDIT_TO_PDF
+            </button>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-exchange-alt"></i> CIPHER_TRANSCODER</div>
+            <p class="proj-p">Conversor de codificação para Base64 e Hexadecimal.</p>
+            <select id="cipher-algo" class="fi" style="margin-bottom:10px">
+                <option value="base64">Base64</option>
+                <option value="hex">Hexadecimal</option>
+            </select>
+            <textarea id="cipher-input" class="fi" style="height:60px; margin-bottom:10px" placeholder="Texto original ou codificado..."></textarea>
+            <div style="display:flex; gap:5px">
+                <button onclick="runTranscoder('encode')" class="sao-button-primary" style="flex:1">ENCODE</button>
+                <button onclick="runTranscoder('decode')" class="sao-button-primary" style="flex:1">DECODE</button>
+            </div>
+            <div id="cipher-output" class="terminal-body" style="height:60px; margin-top:10px; font-size:0.6rem; overflow-y:auto; word-break:break-all;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-key"></i> SECURE_KEY_GEN</div>
+            <p class="proj-p">Gerador de chaves criptográficas de alta entropia.</p>
+            <div class="fg">
+                <label class="fl" style="font-size:0.5rem">LENGTH: <span id="key-len-val">32</span></label>
+                <input type="range" id="key-length" min="8" max="128" value="32" class="vol-slider" style="width:100%; height:auto; appearance:auto; writing-mode:horizontal-tb;" oninput="document.getElementById('key-len-val').innerText = this.value">
+            </div>
+            <button onclick="generateSecureKey()" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--teal); color:var(--teal); background: rgba(6,255,165,0.05);">GENERATE_KEY</button>
+            <input type="text" id="key-output" class="fi" style="margin-top:10px; font-family:var(--ff-mono); font-size:0.7rem;" readonly>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-search-plus"></i> SUBDOMAIN_ENUMERATOR</div>
+            <p class="proj-p">Busca por subdomínios em registros DNS públicos.</p>
+            <input type="text" id="subdomain-target" class="fi" placeholder="Domínio (ex: example.com)">
+            <button onclick="runSubdomainScanner(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--teal); color:var(--teal); background: rgba(6,255,165,0.05);">SCAN_SUBDOMAINS</button>
+            <div id="subdomain-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-id-card"></i> WHOIS_RECON</div>
+            <p class="proj-p">Consulta de informações de registro de domínio.</p>
+            <input type="text" id="whois-target" class="fi" placeholder="Domínio (ex: github.com)">
+            <button onclick="runWhoisLookup(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--gold); color:var(--gold); background: rgba(245,166,35,0.05);">QUERY_WHOIS</button>
+            <div id="whois-results" class="terminal-body" style="height:100px; margin-top:10px; font-size:0.6rem; overflow-y:auto;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-folder-tree"></i> SERVICE_FUZZER</div>
+            <p class="proj-p">Mapeia portas e serviços reais do alvo utilizando o motor de Recon do HackerTarget.</p>
+            <input type="text" id="fuzzer-target" class="fi" placeholder="URL Alvo (ex: example.com)">
+            <button onclick="runDirectoryFuzzer(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--red); color:var(--red);">INIT_RECON_SCAN</button>
+            <div id="fuzzer-results" class="terminal-body" style="height:120px; margin-top:10px; font-size:0.55rem; overflow-y:auto;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-fingerprint"></i> BROWSER_FINGERPRINT</div>
+            <p class="proj-p">Extrai metadados do ambiente de execução para análise de anonimato.</p>
+            <button onclick="runDeviceFingerprint()" class="sao-button-primary" style="width:100%; border-color:var(--cyan); color:var(--cyan);">EXTRACT_FINGERPRINT</button>
+            <div id="fingerprint-results" class="terminal-body" style="height:120px; margin-top:10px; font-size:0.55rem; overflow-y:auto;"></div>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-vial"></i> XSS_PAYLOAD_LAB</div>
+            <p class="proj-p">Gerador de vetores de teste para vulnerabilidades Cross-Site Scripting.</p>
+            <select id="xss-type" class="fi" style="margin-bottom:10px">
+                <option value="alert">Basic Alert</option>
+                <option value="cookie">Cookie Stealer</option>
+                <option value="img">Image Error Bypass</option>
+                <option value="svg">SVG Script Injection</option>
+            </select>
+            <button onclick="generateXSSPayload()" class="sao-button-primary" style="width:100%; border-color:var(--teal); color:var(--teal);">GENERATE_PAYLOAD</button>
+            <textarea id="xss-output" class="fi" style="margin-top:10px; height:60px; font-family:var(--ff-mono); font-size:0.6rem;" readonly></textarea>
+        </div>
+        <div class="proj-card reveal">
+            <div class="proj-h"><i class="fas fa-users-viewfinder"></i> IDENTITY_CROSS_RECON</div>
+            <p class="proj-p">Sistema de cruzamento de dados públicos para identificação de alvos e pegada digital.</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <input type="text" id="recon-name" class="fi" placeholder="Nome Completo" style="font-size:0.6rem">
+                <input type="text" id="recon-user" class="fi" placeholder="Username/Nick" style="font-size:0.6rem">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-top:5px;">
+                <input type="email" id="recon-email" class="fi" placeholder="E-mail" style="font-size:0.6rem">
+                <input type="text" id="recon-phone" class="fi" placeholder="Telefone (DDD)" style="font-size:0.6rem">
+            </div>
+            <input type="text" id="recon-loc" class="fi" placeholder="Localização (Ex: Sorocaba SP)" style="margin-top:5px; font-size:0.6rem">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-top:5px;">
+                <input type="text" id="recon-birth" class="fi" placeholder="Data Nasc. (DD/MM/AAAA)" style="font-size:0.6rem">
+                <input type="text" id="recon-cpf" class="fi" placeholder="CPF (apenas números)" style="font-size:0.6rem">
+            </div>
+            <button onclick="runIdentityRecon(event)" class="sao-button-primary" style="margin-top:10px; width:100%; border-color:var(--gold); color:var(--gold); background: rgba(245,166,35,0.05);">
+                <i class="fas fa-microchip"></i> INITIALIZE_CROSS_RECON
+            </button>
+            <div id="recon-prob-container" style="margin-top: 15px; display: none;">
+                <div class="hud-line" style="font-size: 0.55rem; margin-bottom: 2px;">
+                    <span>ID_PROBABILITY</span> <span id="recon-prob-pct">0%</span>
+                </div>
+                <div class="sao-xp-bar" style="height: 6px; background: rgba(255,255,255,0.1);">
+                    <div id="recon-prob-fill" class="sao-xp-fill" style="width: 0%; background: var(--gold); transition: width 1s ease, background 0.3s ease;"></div>
+                </div>
+            </div>
+            <div id="recon-results" class="terminal-body" style="height:150px; margin-top:10px; font-size:0.55rem; overflow-y:auto; border: 1px solid var(--muted2);">
+                [WAITING_PARAMETERS] Insira dados para iniciar a correlação de fontes públicas...
+            </div>
+            <button id="recon-copy-btn" onclick="copyToClipboard('recon-results')" class="sao-button-primary" style="display:none; margin-top:5px; width:100%; font-size:0.5rem; padding:4px;">
+                <i class="fas fa-copy"></i> COPY_INTEL_REPORT
+            </button>
+            <button id="recon-pdf-btn" onclick="downloadReconPDF()" class="sao-button-primary" style="display:none; margin-top:5px; width:100%; font-size:0.5rem; padding:4px; border-color:var(--gold); color:var(--gold);">
+                <i class="fas fa-file-signature"></i> GENERATE_DOSSIER_PDF
             </button>
         </div>
     </div>

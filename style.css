@@ -285,6 +285,33 @@ body.emergency-mode .system-hud {
 }
 .sao-menu-trigger:hover { background: var(--gold); color: var(--ink); }
 
+/* Estilo para os botões das ferramentas */
+.sao-button-primary {
+  background: rgba(245, 166, 35, 0.2) !important;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  padding: 8px 15px;
+  cursor: crosshair !important;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  pointer-events: all !important;
+  display: inline-block;
+  position: relative;
+  z-index: 10;
+}
+.sao-button-primary:hover {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 0 15px rgba(245, 166, 35, 0.4);
+}
+.sao-button-primary:disabled {
+  opacity: 0.5;
+  cursor: wait !important;
+}
+
 .market-rpg-grid, .inventory-rpg-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -1428,6 +1455,7 @@ h2.sec-title span{color:var(--gold)}
   content:'';position:absolute;inset:0;opacity:0;
   background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(245,166,35,.07),transparent 60%);
   transition:opacity .3s;
+  pointer-events: none;
 }
 .proj-card:hover::after{opacity:1}
 .proj-card:hover{border-color:rgba(245,166,35,.25);transform:translateY(-5px)}
@@ -1544,7 +1572,9 @@ h2.sec-title span{color:var(--gold)}
 .fi,.ft{
   width:100%;background:var(--ink2);border:1px solid rgba(255,255,255,.07);
   color:var(--cream);font-family:var(--ff-ui);font-size:.88rem;
-  padding:.75rem 1rem;outline:none;transition:border-color .2s;cursor:none;
+  padding:.75rem 1rem;outline:none;transition:border-color .2s;
+  cursor: text !important;
+  pointer-events: all !important;
 }
 .fi:focus,.ft:focus{border-color:var(--gold)}
 .fi::placeholder,.ft::placeholder{color:var(--muted)}
@@ -1557,6 +1587,10 @@ h2.sec-title span{color:var(--gold)}
   transition:background .2s,transform .15s;
 }
 .form-btn:hover{background:var(--gold2);transform:translateY(-2px)}
+
+.terminal-body {
+  pointer-events: all !important;
+}
 
 #egg-modal{
   position:fixed;inset:0;z-index:8000;
